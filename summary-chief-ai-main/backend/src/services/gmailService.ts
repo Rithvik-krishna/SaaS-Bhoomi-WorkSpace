@@ -1,5 +1,6 @@
 import { google } from 'googleapis';
 import OpenAI from 'openai';
+import { UserService } from './userService';
 
 // Helper function to get OpenAI client
 const getOpenAIClient = () => {
@@ -44,6 +45,25 @@ class GmailService {
       process.env.GOOGLE_CLIENT_SECRET,
       'http://localhost:5001/api/google/auth/callback'
     );
+  }
+
+  async setCredentialsFromUserId(userId: string) {
+    try {
+      const user = await UserService.findById(userId);
+      if (!user || !user.googleTokens) {
+        throw new Error('User not found or not connected to Google');
+      }
+
+      this.oauth2Client.setCredentials({
+        access_token: user.googleTokens.access_token,
+        refresh_token: user.googleTokens.refresh_token,
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error setting credentials from user ID:', error);
+      throw error;
+    }
   }
 
   setCredentials(accessToken: string, refreshToken?: string) {

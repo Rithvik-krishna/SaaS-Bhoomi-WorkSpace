@@ -20,7 +20,8 @@ const SCOPES = [
   'https://www.googleapis.com/auth/tasks',
   'https://www.googleapis.com/auth/calendar.readonly',
   'https://www.googleapis.com/auth/gmail.readonly',
-  'https://www.googleapis.com/auth/gmail.send'
+  'https://www.googleapis.com/auth/gmail.send',
+  'https://www.googleapis.com/auth/documents.readonly'
 ];
 
 export interface GoogleTokens {
@@ -40,14 +41,13 @@ export class GoogleAuthService {
       access_type: 'offline',
       scope: SCOPES,
       prompt: 'consent', // Always force consent to get refresh token
-      include_granted_scopes: true,
-      approval_prompt: 'force' // Always force approval to ensure refresh token
+      include_granted_scopes: true
     });
     
-    console.log('🔍 Generated Auth URL:', authUrl);
-    console.log('🔍 Redirect URI being used:', process.env.GOOGLE_REDIRECT_URI || 'http://localhost:5001/api/google/auth/callback');
-    console.log('🔍 Force re-auth:', forceReauth);
-    console.log('🔍 OAuth Parameters: access_type=offline, prompt=consent, approval_prompt=force');
+         console.log('🔍 Generated Auth URL:', authUrl);
+     console.log('🔍 Redirect URI being used:', process.env.GOOGLE_REDIRECT_URI || 'http://localhost:5001/api/google/auth/callback');
+     console.log('🔍 Force re-auth:', forceReauth);
+     console.log('🔍 OAuth Parameters: access_type=offline, prompt=consent');
     
     return authUrl;
   }

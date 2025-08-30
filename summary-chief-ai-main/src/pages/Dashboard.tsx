@@ -56,7 +56,7 @@ interface EmailItem {
 
 const Dashboard: React.FC = () => {
   const [currentDate] = useState(new Date());
-  const { user } = useAuth();
+  const { user, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -94,26 +94,48 @@ const Dashboard: React.FC = () => {
     return localStorage.getItem('google_user_id');
   });
 
-  // Handle Google OAuth callback
+  // Handle Google OAuth callback and initialize Google user ID
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const googleConnected = urlParams.get('google_connected');
     const userId = urlParams.get('user_id');
     const googleError = urlParams.get('google_error');
+    const token = urlParams.get('token');
+    const userParam = urlParams.get('user');
     
-    if (googleConnected === 'true' && userId) {
-      toast.success("Successfully connected to Google Drive!");
+    if (googleConnected === 'true' && userId && token && userParam) {
+      try {
+        // Log the user into the app
+        const userData = JSON.parse(decodeURIComponent(userParam));
+        login(userData, token);
+        toast.success("Successfully connected to Google Workspace!");
+        setGoogleUserId(userId);
+        localStorage.setItem('google_user_id', userId);
+        // Clean up URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } catch (error) {
+        console.error('Error processing Google OAuth login:', error);
+        toast.error("Failed to process Google login");
+      }
+    } else if (googleConnected === 'true' && userId) {
+      // Just Google connection without app login
+      toast.success("Successfully connected to Google Workspace!");
       setGoogleUserId(userId);
-      // Store in localStorage for other pages to use
       localStorage.setItem('google_user_id', userId);
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
     } else if (googleError === 'true') {
-      toast.error("Failed to connect to Google Drive. Please try again.");
+      toast.error("Failed to connect to Google Workspace. Please try again.");
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
+    } else {
+      // Initialize from localStorage if no OAuth callback
+      const storedUserId = localStorage.getItem('google_user_id');
+      if (storedUserId) {
+        setGoogleUserId(storedUserId);
+      }
     }
-  }, []);
+  }, [login]);
 
   // Fetch real data on component mount
   useEffect(() => {
@@ -300,19 +322,10 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // Show loading or error state if no user
+  // Redirect to homepage if no user
   if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-900 text-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
-          <p className="text-gray-400 mb-6">Please log in to view your dashboard</p>
-          <Button onClick={() => navigate('/')} className="bg-purple-600 hover:bg-purple-700">
-            Go to Login
-          </Button>
-        </div>
-      </div>
-    );
+    navigate('/');
+    return null;
   }
 
   return (

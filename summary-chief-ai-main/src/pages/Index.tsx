@@ -15,14 +15,11 @@ const Index = () => {
   const { user, login, logout } = useAuth();
   const navigate = useNavigate();
 
-  // Handle Google OAuth callback
+  // Handle login callback
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
     const userParam = urlParams.get('user');
-    const googleConnected = urlParams.get('google_connected');
-    const userId = urlParams.get('user_id');
-    const googleError = urlParams.get('google_error');
     
     if (token && userParam) {
       try {
@@ -35,17 +32,6 @@ const Index = () => {
       } catch (error) {
         toast.error("Failed to process login");
       }
-    }
-    
-    // Handle Google Drive integration callback
-    if (googleConnected === 'true' && userId) {
-      toast.success("Successfully connected to Google Drive!");
-      // Clean up URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-    } else if (googleError === 'true') {
-      toast.error("Failed to connect to Google Drive. Please try again.");
-      // Clean up URL
-      window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, [login]);
 

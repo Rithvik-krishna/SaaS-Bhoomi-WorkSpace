@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 import { 
   ArrowLeft,
   Calendar
@@ -21,6 +22,8 @@ const WorkspaceAI: React.FC = () => {
       return;
     }
   }, [user, navigate]);
+
+
 
   if (!user) {
     return null;

@@ -18,7 +18,13 @@ import {
   RefreshCw,
   ExternalLink,
   Download,
-  Eye
+  Eye,
+  Sparkles,
+  MessageSquare,
+  Clock,
+  Users,
+  CheckCircle,
+  AlertCircle
 } from 'lucide-react';
 import axios from 'axios';
 
@@ -34,6 +40,25 @@ interface DriveFile {
   thumbnailLink?: string;
 }
 
+interface DocumentSummary {
+  summary: string;
+  keyPoints: string[];
+  actionItems: string[];
+  sentiment: 'positive' | 'negative' | 'neutral';
+  readingTime: number;
+  wordCount: number;
+}
+
+interface MeetingNotes {
+  transcript: string;
+  summary: string;
+  keyDecisions: string[];
+  actionItems: string[];
+  participants: string[];
+  duration: number;
+  sentiment: 'positive' | 'negative' | 'neutral';
+}
+
 const API_BASE = 'http://localhost:5001/api';
 
 const GoogleDriveIntegration: React.FC = () => {
@@ -45,7 +70,12 @@ const GoogleDriveIntegration: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isConnected, setIsConnected] = useState(false);
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<{ name?: string; email?: string } | null>(null);
+  const [selectedFile, setSelectedFile] = useState<DriveFile | null>(null);
+  const [documentSummary, setDocumentSummary] = useState<DocumentSummary | null>(null);
+  const [meetingNotes, setMeetingNotes] = useState<MeetingNotes | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+  const [transcriptionLoading, setTranscriptionLoading] = useState(false);
 
   // Check connection status on mount
   useEffect(() => {
@@ -63,6 +93,8 @@ const GoogleDriveIntegration: React.FC = () => {
     if (googleConnected === 'true' && userId) {
       toast.success('Successfully connected to Google Drive!');
       setIsConnected(true);
+      // Store in localStorage for other pages to use
+      localStorage.setItem('google_user_id', userId);
       fetchFiles(userId);
     } else if (googleError === 'true') {
       toast.error('Failed to connect to Google Drive. Please try again.');
@@ -71,15 +103,21 @@ const GoogleDriveIntegration: React.FC = () => {
 
   const checkConnectionStatus = async () => {
     try {
+      const userId = localStorage.getItem('google_user_id');
+      if (!userId) {
+        setIsConnected(false);
+        return;
+      }
+
       const response = await axios.get(`${API_BASE}/google/auth/status`, {
-        params: { user_id: user?.email },
+        params: { user_id: userId },
         withCredentials: true
       });
 
       if (response.data.success && response.data.data.connected) {
         setIsConnected(true);
         setUserProfile(response.data.data.userProfile);
-        fetchFiles(user?.email || '');
+        fetchFiles(userId);
       }
     } catch (error) {
       console.error('Error checking connection status:', error);
@@ -125,8 +163,14 @@ const GoogleDriveIntegration: React.FC = () => {
   };
 
   const searchFiles = async () => {
+    const userId = localStorage.getItem('google_user_id');
+    if (!userId) {
+      toast.error('Please connect your Google account first');
+      return;
+    }
+
     if (!searchQuery.trim()) {
-      fetchFiles(user?.email || '');
+      fetchFiles(userId);
       return;
     }
 
@@ -134,7 +178,7 @@ const GoogleDriveIntegration: React.FC = () => {
     try {
       const response = await axios.get(`${API_BASE}/drive/search`, {
         params: { 
-          user_id: user?.email, 
+          user_id: userId, 
           query: searchQuery,
           maxResults: 50 
         },
@@ -154,8 +198,14 @@ const GoogleDriveIntegration: React.FC = () => {
 
   const disconnectFromGoogle = async () => {
     try {
+      const userId = localStorage.getItem('google_user_id');
+      if (!userId) {
+        toast.error('No Google account connected');
+        return;
+      }
+
       await axios.post(`${API_BASE}/google/auth/disconnect`, {
-        user_id: user?.email
+        user_id: userId
       }, {
         withCredentials: true
       });
@@ -163,10 +213,108 @@ const GoogleDriveIntegration: React.FC = () => {
       setIsConnected(false);
       setUserProfile(null);
       setFiles([]);
+      localStorage.removeItem('google_user_id');
       toast.success('Disconnected from Google Drive');
     } catch (error) {
       console.error('Error disconnecting:', error);
       toast.error('Failed to disconnect from Google Drive');
+    }
+  };
+
+  const summarizeDocument = async (file: DriveFile) => {
+    setSummaryLoading(true);
+    setDocumentSummary(null);
+    setSelectedFile(file);
+    
+    try {
+      const userId = localStorage.getItem('google_user_id');
+      if (!userId) {
+        toast.error('Please connect your Google account first');
+        return;
+      }
+
+      const response = await axios.post(`${API_BASE}/documents/summarize`, {
+        user_id: userId,
+        fileId: file.id
+      }, {
+        withCredentials: true
+      });
+
+      if (response.data.success) {
+        setDocumentSummary(response.data.data);
+        toast.success('Document summarized successfully!');
+      }
+    } catch (error: unknown) {
+      console.error('Error summarizing document:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to summarize document';
+      toast.error(errorMessage);
+    } finally {
+      setSummaryLoading(false);
+    }
+  };
+
+  const transcribeFile = async (file: DriveFile) => {
+    setTranscriptionLoading(true);
+    setMeetingNotes(null);
+    setSelectedFile(file);
+    
+    try {
+      const userId = localStorage.getItem('google_user_id');
+      if (!userId) {
+        toast.error('Please connect your Google account first');
+        return;
+      }
+
+      const response = await axios.post(`${API_BASE}/documents/transcribe`, {
+        user_id: userId,
+        fileId: file.id
+      }, {
+        withCredentials: true
+      });
+
+      if (response.data.success) {
+        setMeetingNotes(response.data.data);
+        toast.success('File transcribed and meeting notes generated!');
+      }
+    } catch (error: unknown) {
+      console.error('Error transcribing file:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to transcribe file';
+      toast.error(errorMessage);
+    } finally {
+      setTranscriptionLoading(false);
+    }
+  };
+
+  const isSummarizable = (mimeType: string) => {
+    return [
+      'application/vnd.google-apps.document',
+      'application/pdf',
+      'text/plain',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/csv',
+      'application/json',
+      'text/markdown'
+    ].includes(mimeType);
+  };
+
+  const isTranscribable = (mimeType: string) => {
+    return mimeType.startsWith('audio/') || mimeType.startsWith('video/');
+  };
+
+  const getSentimentColor = (sentiment: string) => {
+    switch (sentiment) {
+      case 'positive': return 'text-green-400';
+      case 'negative': return 'text-red-400';
+      default: return 'text-gray-400';
+    }
+  };
+
+  const getSentimentIcon = (sentiment: string) => {
+    switch (sentiment) {
+      case 'positive': return '😊';
+      case 'negative': return '😞';
+      default: return '😐';
     }
   };
 
@@ -202,6 +350,14 @@ const GoogleDriveIntegration: React.FC = () => {
 
   const handleBackNavigation = () => {
     navigate('/dashboard');
+  };
+
+  const handleConnectGoogle = () => {
+    connectToGoogle();
+  };
+
+  const handleReauthenticate = () => {
+    connectToGoogle(true);
   };
 
   if (!user) {
@@ -292,20 +448,20 @@ const GoogleDriveIntegration: React.FC = () => {
               Connect your Google Drive to access and manage your files
             </p>
             <div className="flex items-center gap-3 justify-center">
-              <Button
-                onClick={() => connectToGoogle(false)}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
-              >
-                <Folder className="w-4 h-4" />
-                Connect Google Drive
-              </Button>
-              <Button
-                onClick={() => connectToGoogle(true)}
-                variant="outline"
-                className="border-orange-500 text-orange-500 hover:bg-orange-900/40"
-              >
-                Re-authenticate
-              </Button>
+                             <Button
+                 onClick={handleConnectGoogle}
+                 className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+               >
+                 <Folder className="w-4 h-4" />
+                 Connect Google Drive
+               </Button>
+               <Button
+                 onClick={handleReauthenticate}
+                 variant="outline"
+                 className="border-orange-500 text-orange-500 hover:bg-orange-900/40"
+               >
+                 Re-authenticate
+               </Button>
             </div>
           </div>
         ) : (
@@ -378,6 +534,34 @@ const GoogleDriveIntegration: React.FC = () => {
                         </div>
                         
                         <div className="flex items-center gap-2">
+                          {/* AI Summarize Button */}
+                          {isSummarizable(file.mimeType) && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => summarizeDocument(file)}
+                              disabled={summaryLoading}
+                              className="text-gray-400 hover:text-purple-400"
+                              title="AI Summarize"
+                            >
+                              <Sparkles className="w-4 h-4" />
+                            </Button>
+                          )}
+                          
+                          {/* AI Transcribe Button */}
+                          {isTranscribable(file.mimeType) && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => transcribeFile(file)}
+                              disabled={transcriptionLoading}
+                              className="text-gray-400 hover:text-green-400"
+                              title="AI Transcribe"
+                            >
+                              <MessageSquare className="w-4 h-4" />
+                            </Button>
+                          )}
+                          
                           {file.webViewLink && (
                             <Button
                               variant="ghost"
@@ -395,6 +579,133 @@ const GoogleDriveIntegration: React.FC = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* AI Results Section */}
+            {(documentSummary || meetingNotes) && (
+              <Card className="bg-gray-900 border-gray-800">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-purple-400" />
+                    AI Analysis Results
+                    {selectedFile && (
+                      <span className="text-sm text-gray-400 font-normal">
+                        - {selectedFile.name}
+                      </span>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {/* Document Summary */}
+                  {documentSummary && (
+                    <div className="space-y-4">
+                      <div className="border-b border-gray-700 pb-4">
+                        <h3 className="text-lg font-semibold text-purple-400 mb-2">Document Summary</h3>
+                        <p className="text-gray-300 mb-3">{documentSummary.summary}</p>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <h4 className="font-medium text-gray-200 mb-2">Key Points</h4>
+                            <ul className="space-y-1">
+                              {documentSummary.keyPoints.map((point, index) => (
+                                <li key={index} className="flex items-start gap-2 text-sm text-gray-400">
+                                  <div className="w-2 h-2 bg-purple-500 rounded-full mt-1.5 flex-shrink-0" />
+                                  {point}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          
+                          <div>
+                            <h4 className="font-medium text-gray-200 mb-2">Action Items</h4>
+                            <ul className="space-y-1">
+                              {documentSummary.actionItems.map((item, index) => (
+                                <li key={index} className="flex items-start gap-2 text-sm text-gray-400">
+                                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                  {item}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-4 mt-4 text-sm text-gray-400">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            {documentSummary.readingTime} min read
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <FileText className="w-4 h-4" />
+                            {documentSummary.wordCount} words
+                          </span>
+                          <span className={`flex items-center gap-1 ${getSentimentColor(documentSummary.sentiment)}`}>
+                            {getSentimentIcon(documentSummary.sentiment)}
+                            {documentSummary.sentiment} sentiment
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Meeting Notes */}
+                  {meetingNotes && (
+                    <div className="space-y-4">
+                      <div className="border-b border-gray-700 pb-4">
+                        <h3 className="text-lg font-semibold text-green-400 mb-2">Meeting Notes</h3>
+                        <p className="text-gray-300 mb-3">{meetingNotes.summary}</p>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <h4 className="font-medium text-gray-200 mb-2">Key Decisions</h4>
+                            <ul className="space-y-1">
+                              {meetingNotes.keyDecisions.map((decision, index) => (
+                                <li key={index} className="flex items-start gap-2 text-sm text-gray-400">
+                                  <AlertCircle className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                                  {decision}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          
+                          <div>
+                            <h4 className="font-medium text-gray-200 mb-2">Action Items</h4>
+                            <ul className="space-y-1">
+                              {meetingNotes.actionItems.map((item, index) => (
+                                <li key={index} className="flex items-start gap-2 text-sm text-gray-400">
+                                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                  {item}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-4 mt-4 text-sm text-gray-400">
+                          <span className="flex items-center gap-1">
+                            <Users className="w-4 h-4" />
+                            {meetingNotes.participants.length} participants
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            {meetingNotes.duration} minutes
+                          </span>
+                          <span className={`flex items-center gap-1 ${getSentimentColor(meetingNotes.sentiment)}`}>
+                            {getSentimentIcon(meetingNotes.sentiment)}
+                            {meetingNotes.sentiment} sentiment
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h4 className="font-medium text-gray-200 mb-2">Transcript</h4>
+                        <div className="bg-gray-800 p-3 rounded-lg max-h-40 overflow-y-auto">
+                          <p className="text-sm text-gray-400 whitespace-pre-wrap">{meetingNotes.transcript}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </div>
         )}
       </div>

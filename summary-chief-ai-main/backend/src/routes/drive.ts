@@ -1,11 +1,8 @@
 import express from 'express';
 import GoogleDriveService from '../services/googleDriveService';
+import tokenStorage from '../services/tokenStorage';
 
 const router = express.Router();
-
-// In-memory storage for demo purposes (same as in google.ts)
-// In production, use a database to store tokens securely
-const userTokens = new Map<string, any>();
 
 /**
  * GET /api/drive/files
@@ -23,7 +20,7 @@ router.get('/files', async (req, res) => {
     }
 
     // Get user tokens
-    const userToken = userTokens.get(user_id as string);
+    const userToken = tokenStorage.getUserTokens(user_id as string);
     
     if (!userToken) {
       return res.status(401).json({
@@ -71,7 +68,7 @@ router.get('/files/:fileId', async (req, res) => {
     }
 
     // Get user tokens
-    const userToken = userTokens.get(user_id as string);
+    const userToken = tokenStorage.getUserTokens(user_id as string);
     
     if (!userToken) {
       return res.status(401).json({
@@ -119,7 +116,7 @@ router.get('/files/:fileId/content', async (req, res) => {
     }
 
     // Get user tokens
-    const userToken = userTokens.get(user_id as string);
+    const userToken = tokenStorage.getUserTokens(user_id as string);
     
     if (!userToken) {
       return res.status(401).json({
@@ -176,7 +173,7 @@ router.get('/search', async (req, res) => {
     }
 
     // Get user tokens
-    const userToken = userTokens.get(user_id as string);
+    const userToken = tokenStorage.getUserTokens(user_id as string);
     
     if (!userToken) {
       return res.status(401).json({
@@ -227,10 +224,10 @@ router.get('/files/type/:mimeType', async (req, res) => {
     }
 
     // Get user tokens
-    const userToken = userTokens.get(user_id as string);
+    const userToken = tokenStorage.getUserTokens(user_id as string);
     
     if (!userToken) {
-      return res.status(401).json({
+      return res.status(400).json({
         success: false,
         error: 'User not connected to Google'
       });

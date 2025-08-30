@@ -1,12 +1,12 @@
 import { Router, Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
 import gmailService, { EmailData, EmailSummary, EmailDraft } from '../services/gmailService';
-import tokenStorage from '../services/tokenStorage';
+import { UserService } from '../services/userService';
 
 const router = Router();
 
 // Set Gmail credentials from user's OAuth tokens
-const setGmailCredentials = (req: any, res: any, next: any) => {
+const setGmailCredentials = async (req: any, res: any, next: any) => {
   try {
     const { user_id } = req.query;
     
@@ -17,20 +17,14 @@ const setGmailCredentials = (req: any, res: any, next: any) => {
       });
     }
 
-    const userToken = tokenStorage.getUserTokens(user_id as string);
-    
-    if (!userToken) {
-      return res.status(401).json({ 
-        success: false, 
-        error: 'User not connected to Google. Please connect your Google account first.' 
-      });
-    }
-
-    gmailService.setCredentials(userToken.access_token, userToken.refresh_token);
+    await gmailService.setCredentialsFromUserId(user_id as string);
     next();
   } catch (error) {
     console.error('Error setting Gmail credentials:', error);
-    res.status(500).json({ success: false, error: 'Failed to set Gmail credentials' });
+    res.status(401).json({ 
+      success: false, 
+      error: 'User not connected to Google. Please connect your Google account first.' 
+    });
   }
 };
 

@@ -3,12 +3,15 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import session from 'express-session';
 import passport from 'passport';
+import { connectDB } from './config/database';
 import authRoutes from './routes/auth';
 import gmailRoutes from './routes/gmail';
 import aiRoutes from './routes/ai';
 import calendarRoutes from './routes/calendar';
 import googleRoutes from './routes/google';
 import driveRoutes from './routes/drive';
+import documentRoutes from './routes/documents';
+import databaseRoutes from './routes/database';
 
 dotenv.config();
 
@@ -46,6 +49,8 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/google', googleRoutes);
 app.use('/api/drive', driveRoutes);
+app.use('/api/documents', documentRoutes);
+app.use('/api/database', databaseRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -58,7 +63,9 @@ app.get('/', (req, res) => {
           ai: '/api/ai',
           calendar: '/api/calendar',
           google: '/api/google',
-          drive: '/api/drive'
+          drive: '/api/drive',
+          documents: '/api/documents',
+          database: '/api/database'
         }
   });
 });
@@ -72,8 +79,23 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Backend running on port ${PORT}`);
-  console.log(`📊 API: http://localhost:${PORT}`);
-  console.log(`🏥 Health: http://localhost:${PORT}/api/health`);
-});
+// Connect to MongoDB and start server
+const startServer = async () => {
+  try {
+    // Connect to MongoDB
+    await connectDB();
+    
+    // Start server
+    app.listen(PORT, () => {
+      console.log(`🚀 Backend running on port ${PORT}`);
+      console.log(`📊 API: http://localhost:${PORT}`);
+      console.log(`🏥 Health: http://localhost:${PORT}/api/health`);
+      console.log(`🗄️ MongoDB: Connected`);
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
