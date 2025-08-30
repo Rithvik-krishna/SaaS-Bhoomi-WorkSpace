@@ -178,28 +178,33 @@ const Dashboard: React.FC = () => {
         
         // Fetch upcoming calendar events
         try {
-          const calendarResponse = await axios.get(`${API_BASE}/calendar/upcoming-events?maxResults=5`, {
-            withCredentials: true
-          });
-          
-          console.log('Calendar API response:', calendarResponse.data);
-          
-          if (calendarResponse.data.success) {
-            // Handle different possible data structures
-            let events = [];
-            if (Array.isArray(calendarResponse.data.data)) {
-              events = calendarResponse.data.data;
-            } else if (calendarResponse.data.data && Array.isArray(calendarResponse.data.data.items)) {
-              events = calendarResponse.data.data.items;
-            } else if (calendarResponse.data.data && Array.isArray(calendarResponse.data.data.events)) {
-              events = calendarResponse.data.data.events;
-            }
-            
-            console.log('Processed calendar events:', events);
-            setCalendarEvents(events);
-          } else {
-            console.warn('Calendar API returned success: false');
+          if (!googleUserId) {
+            console.log('No Google user ID found, skipping calendar events');
             setCalendarEvents([]);
+          } else {
+            const calendarResponse = await axios.get(`${API_BASE}/calendar/upcoming-events?maxResults=5&user_id=${googleUserId}`, {
+              withCredentials: true
+            });
+          
+            console.log('Calendar API response:', calendarResponse.data);
+            
+            if (calendarResponse.data.success) {
+              // Handle different possible data structures
+              let events = [];
+              if (Array.isArray(calendarResponse.data.data)) {
+                events = calendarResponse.data.data;
+              } else if (calendarResponse.data.data && Array.isArray(calendarResponse.data.data.items)) {
+                events = calendarResponse.data.data.items;
+              } else if (calendarResponse.data.data && Array.isArray(calendarResponse.data.data.events)) {
+                events = calendarResponse.data.data.events;
+              }
+              
+              console.log('Processed calendar events:', events);
+              setCalendarEvents(events);
+            } else {
+              console.warn('Calendar API returned success: false');
+              setCalendarEvents([]);
+            }
           }
         } catch (calendarError: any) {
           console.error('Calendar API error:', calendarError);
@@ -768,12 +773,12 @@ const Dashboard: React.FC = () => {
                   Array.isArray(calendarEvents) && calendarEvents.length > 0 ? (
                     calendarEvents.slice(0, 3).map((event) => (
                       <div 
-                        key={event.id || event.summary} 
+                        key={event.id || event.title} 
                         className="flex items-center justify-between p-2 rounded-lg bg-gray-700 hover:bg-gray-600 cursor-pointer transition-colors relative z-20"
                         onClick={() => navigate('/workspace-ai')}
                       >
                         <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-200">{event.summary || event.title || 'Untitled Event'}</p>
+                          <p className="text-sm font-medium text-gray-200">{event.title || 'Untitled Event'}</p>
                           <p className="text-xs text-gray-400">
                             {event.start && event.end ? `${formatTime(event.start)} - ${formatTime(event.end)}` : 'Time TBD'}
                           </p>

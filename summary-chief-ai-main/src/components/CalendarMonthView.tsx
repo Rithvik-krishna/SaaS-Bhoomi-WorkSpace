@@ -70,7 +70,17 @@ const CalendarMonthView: React.FC = () => {
 
   const fetchEvents = async () => {
     try {
-      const response = await axios.get(`${API_BASE}/calendar/upcoming-events`, {
+      // Get user_id from localStorage or URL params
+      const urlParams = new URLSearchParams(window.location.search);
+      const userId = urlParams.get('user_id') || localStorage.getItem('google_user_id');
+      
+      if (!userId) {
+        console.log('No user ID found, skipping calendar events');
+        setEvents([]);
+        return;
+      }
+
+      const response = await axios.get(`${API_BASE}/calendar/upcoming-events?user_id=${userId}`, {
         withCredentials: true
       });
       
@@ -296,8 +306,17 @@ const CalendarMonthView: React.FC = () => {
       const [endHour, endMinute] = newEvent.endTime.split(':').map(Number);
       endDateTime.setHours(endHour, endMinute, 0, 0);
 
+      // Get user_id from localStorage or URL params
+      const urlParams = new URLSearchParams(window.location.search);
+      const userId = urlParams.get('user_id') || localStorage.getItem('google_user_id');
+      
+      if (!userId) {
+        toast.error('Please connect your Google account first');
+        return;
+      }
+
       // Create event directly without AI parsing
-      const response = await axios.post(`${API_BASE}/calendar/create-event`, {
+      const response = await axios.post(`${API_BASE}/calendar/create-event?user_id=${userId}`, {
         title: newEvent.title,
         description: newEvent.description,
         startTime: startDateTime.toISOString(),

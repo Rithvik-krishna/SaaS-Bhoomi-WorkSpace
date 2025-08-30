@@ -1,22 +1,65 @@
-import express from 'express';
+import * as express from 'express';
 import { google } from 'googleapis';
+import * as jwt from 'jsonwebtoken';
 import { CalendarService } from '../services/calendarService';
 import { OAuth2Client } from 'google-auth-library';
+import { UserService } from '../services/userService';
 
 const router = express.Router();
 
 // Middleware to get OAuth2 client from session
-const getAuthClient = (req: any): OAuth2Client | null => {
-  if (!req.user || !req.user.accessToken) {
-    console.log('No user or access token found');
+const getAuthClient = async (req: any): Promise<OAuth2Client | null> => {
+  let user = req.user;
+  
+  // If no session user, try to get user from token in Authorization header
+  if (!user) {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      try {
+        const jwt = require('jsonwebtoken');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'defaultsecret');
+        user = decoded;
+      } catch (tokenError) {
+        console.error('Token verification failed:', tokenError);
+      }
+    }
+  }
+  
+  // If still no user, check for user_id in query params (fallback)
+  if (!user && req.query.user_id) {
+    console.log('Using user_id from query params for calendar:', req.query.user_id);
+    
+    try {
+      // Try to get user from database using user_id
+      const dbUser = await UserService.findById(req.query.user_id as string);
+      if (dbUser && dbUser.googleTokens) {
+        user = {
+          id: dbUser._id,
+          email: dbUser.email,
+          name: dbUser.name,
+          accessToken: dbUser.googleTokens.access_token,
+          refreshToken: dbUser.googleTokens.refresh_token
+        };
+        console.log('Found user in database with Google tokens for calendar');
+      } else {
+        console.log('User not found in database or no Google tokens for calendar');
+      }
+    } catch (dbError) {
+      console.error('Error fetching user from database for calendar:', dbError);
+    }
+  }
+  
+  if (!user || !user.accessToken) {
+    console.log('No user or access token found for calendar');
     return null;
   }
 
-  console.log('User found:', { 
-    id: req.user.id, 
-    email: req.user.email,
-    hasAccessToken: !!req.user.accessToken,
-    hasRefreshToken: !!req.user.refreshToken
+  console.log('User found for calendar:', { 
+    id: user.id, 
+    email: user.email,
+    hasAccessToken: !!user.accessToken,
+    hasRefreshToken: !!user.refreshToken
   });
 
   const oauth2Client = new OAuth2Client(
@@ -26,16 +69,54 @@ const getAuthClient = (req: any): OAuth2Client | null => {
   );
 
   oauth2Client.setCredentials({
-    access_token: req.user.accessToken,
-    refresh_token: req.user.refreshToken,
+    access_token: user.accessToken,
+    refresh_token: user.refreshToken,
   });
 
   return oauth2Client;
 };
 
 // Middleware to check authentication
-const requireAuth = (req: any, res: any, next: any) => {
-  if (!req.user) {
+const requireAuth = async (req: any, res: any, next: any) => {
+  let user = req.user;
+  
+  // If no session user, try to get user from token in Authorization header
+  if (!user) {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'defaultsecret');
+        user = decoded;
+        req.user = user; // Set req.user for downstream middleware
+      } catch (tokenError) {
+        console.error('Token verification failed:', tokenError);
+      }
+    }
+  }
+  
+  // If still no user, check for user_id in query params (fallback)
+  if (!user && req.query.user_id) {
+    try {
+      // Try to get user from database using user_id
+      const dbUser = await UserService.findById(req.query.user_id as string);
+      if (dbUser && dbUser.googleTokens) {
+        user = {
+          id: dbUser._id,
+          email: dbUser.email,
+          name: dbUser.name,
+          accessToken: dbUser.googleTokens.access_token,
+          refreshToken: dbUser.googleTokens.refresh_token
+        };
+        req.user = user; // Set req.user for downstream middleware
+        console.log('Found user in database with Google tokens for calendar auth');
+      }
+    } catch (dbError) {
+      console.error('Error fetching user from database for calendar auth:', dbError);
+    }
+  }
+  
+  if (!user) {
     return res.status(401).json({
       success: false,
       message: 'Authentication required'
@@ -48,7 +129,7 @@ const requireAuth = (req: any, res: any, next: any) => {
  * POST /schedule-meeting
  * Schedule a meeting using natural language command
  */
-router.post('/schedule-meeting', requireAuth, async (req, res) => {
+  router.post('/schedule-meeting', requireAuth, async (req, res) => {
   try {
     const { command } = req.body;
     
@@ -59,7 +140,7 @@ router.post('/schedule-meeting', requireAuth, async (req, res) => {
       });
     }
 
-    const authClient = getAuthClient(req);
+    const authClient = await getAuthClient(req);
     if (!authClient) {
       return res.status(401).json({
         success: false,
@@ -99,7 +180,7 @@ router.post('/schedule-meeting', requireAuth, async (req, res) => {
  */
 router.get('/test-auth', requireAuth, async (req, res) => {
   try {
-    const authClient = getAuthClient(req);
+    const authClient = await getAuthClient(req);
     if (!authClient) {
       return res.status(401).json({
         success: false,
@@ -146,7 +227,7 @@ router.post('/create-event', requireAuth, async (req, res) => {
       });
     }
 
-    const authClient = getAuthClient(req);
+    const authClient = await getAuthClient(req);
     if (!authClient) {
       return res.status(401).json({
         success: false,
@@ -210,7 +291,7 @@ router.post('/summarize-meeting', requireAuth, async (req, res) => {
       });
     }
 
-    const authClient = getAuthClient(req);
+    const authClient = await getAuthClient(req);
     if (!authClient) {
       return res.status(401).json({
         success: false,
@@ -252,7 +333,7 @@ router.post('/book-interview', requireAuth, async (req, res) => {
       });
     }
 
-    const authClient = getAuthClient(req);
+    const authClient = await getAuthClient(req);
     if (!authClient) {
       return res.status(401).json({
         success: false,
@@ -294,7 +375,7 @@ router.get('/upcoming-events', requireAuth, async (req, res) => {
   try {
     const { maxResults = 10 } = req.query;
     
-    const authClient = getAuthClient(req);
+    const authClient = await getAuthClient(req);
     if (!authClient) {
       return res.status(401).json({
         success: false,
@@ -348,7 +429,7 @@ router.get('/available-slots', requireAuth, async (req, res) => {
       ? participants 
       : [participants as string];
 
-    const authClient = getAuthClient(req);
+    const authClient = await getAuthClient(req);
     if (!authClient) {
       return res.status(401).json({
         success: false,

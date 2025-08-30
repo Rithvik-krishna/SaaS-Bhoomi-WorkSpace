@@ -66,7 +66,18 @@ const CalendarDashboard: React.FC<CalendarDashboardProps> = ({
   const fetchEvents = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API_BASE}/calendar/upcoming-events?maxResults=20`, {
+      // Get user_id from localStorage or URL params
+      const urlParams = new URLSearchParams(window.location.search);
+      const userId = urlParams.get('user_id') || localStorage.getItem('google_user_id');
+      
+      if (!userId) {
+        console.log('No user ID found, skipping calendar events');
+        setEvents([]);
+        setLoading(false);
+        return;
+      }
+
+      const response = await axios.get(`${API_BASE}/calendar/upcoming-events?maxResults=20&user_id=${userId}`, {
         withCredentials: true
       });
       setEvents(response.data.data.events);

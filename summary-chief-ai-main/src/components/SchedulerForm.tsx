@@ -142,7 +142,16 @@ const SchedulerForm: React.FC<SchedulerFormProps> = ({ onMeetingScheduled, onClo
       // Create a natural language command for the AI scheduler
       const command = `Schedule a ${formData.meetingType} titled "${formData.title}" with ${formData.participants.join(', ')} on ${format(formData.date!, 'EEEE, MMMM d')} from ${formData.startTime} to ${formData.endTime}. ${formData.description}`;
       
-      const response = await axios.post(`${API_BASE}/calendar/schedule-meeting`, {
+      // Get user_id from localStorage or URL params
+      const urlParams = new URLSearchParams(window.location.search);
+      const userId = urlParams.get('user_id') || localStorage.getItem('google_user_id');
+      
+      if (!userId) {
+        toast.error('Please connect your Google account first');
+        return;
+      }
+
+      const response = await axios.post(`${API_BASE}/calendar/schedule-meeting?user_id=${userId}`, {
         command
       }, {
         withCredentials: true

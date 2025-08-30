@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
+import jwt from 'jsonwebtoken';
 import gmailService, { EmailData, EmailSummary, EmailDraft } from '../services/gmailService';
 import { UserService } from '../services/userService';
 
@@ -8,23 +9,72 @@ const router = Router();
 // Set Gmail credentials from user's OAuth tokens
 const setGmailCredentials = async (req: any, res: any, next: any) => {
   try {
-    // Check if user is authenticated via session
-    if (!req.user) {
+    let user = req.user;
+    
+    // If no session user, try to get user from token in Authorization header
+    if (!user) {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.substring(7);
+        try {
+          const decoded = jwt.verify(token, process.env.JWT_SECRET || 'defaultsecret');
+          // For now, we'll use the token payload as user info
+          user = decoded;
+        } catch (tokenError) {
+          console.error('Token verification failed:', tokenError);
+        }
+      }
+    }
+    
+    // If still no user, check for user_id in query params (fallback)
+    if (!user && req.query.user_id) {
+      // This is a fallback for when the frontend sends user_id
+      // We'll need to get the user's Google tokens from somewhere
+      console.log('Using user_id from query params:', req.query.user_id);
+      
+      try {
+        // Try to get user from database using user_id
+        const dbUser = await UserService.findById(req.query.user_id as string);
+        if (dbUser && dbUser.googleTokens) {
+          user = {
+            id: dbUser._id,
+            email: dbUser.email,
+            name: dbUser.name,
+            accessToken: dbUser.googleTokens.access_token,
+            refreshToken: dbUser.googleTokens.refresh_token
+          };
+          console.log('Found user in database with Google tokens');
+        } else {
+          console.log('User not found in database or no Google tokens');
+        }
+      } catch (dbError) {
+        console.error('Error fetching user from database:', dbError);
+      }
+    }
+    
+    if (!user) {
       return res.status(401).json({ 
         success: false, 
         error: 'User not authenticated. Please log in first.' 
       });
     }
 
-    // Use the authenticated user's ID from session
-    const userId = req.user.id;
-    await gmailService.setCredentialsFromUserId(userId);
+    // Check if user has Google access token
+    if (!user.accessToken) {
+      return res.status(401).json({ 
+        success: false, 
+        error: 'User not connected to Google. Please connect your Google account first.' 
+      });
+    }
+
+    // Set credentials directly from user object
+    gmailService.setCredentials(user.accessToken, user.refreshToken);
     next();
   } catch (error) {
     console.error('Error setting Gmail credentials:', error);
     res.status(401).json({ 
       success: false, 
-      error: 'User not connected to Google. Please connect your Google account first.' 
+      error: 'Failed to set Gmail credentials' 
     });
   }
 };

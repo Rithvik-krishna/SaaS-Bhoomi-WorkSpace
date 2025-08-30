@@ -148,7 +148,16 @@ const Chatbot: React.FC<ChatbotProps> = ({ onScheduleMeeting, onSummarizeMeeting
       // Extract meeting ID or date from command (simplified)
       const meetingId = 'sample-meeting-id'; // In real app, extract from command
       
-      const response = await axios.post(`${API_BASE}/calendar/summarize-meeting`, {
+      // Get user_id from localStorage or URL params
+      const urlParams = new URLSearchParams(window.location.search);
+      const userId = urlParams.get('user_id') || localStorage.getItem('google_user_id');
+      
+      if (!userId) {
+        toast.error('Please connect your Google account first');
+        return;
+      }
+
+      const response = await axios.post(`${API_BASE}/calendar/summarize-meeting?user_id=${userId}`, {
         meetingId
       }, {
         withCredentials: true
