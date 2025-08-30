@@ -1,14 +1,9 @@
 import { google } from 'googleapis';
 import OpenAI from 'openai';
 
-// Helper function to get OpenAI client
-const getOpenAIClient = () => {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error('OPENAI_API_KEY environment variable is not set');
-  }
-  return new OpenAI({ apiKey });
-};
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 export interface EmailData {
   id: string;
@@ -169,7 +164,6 @@ class GmailService {
         }
       `;
 
-      const openai = getOpenAIClient();
       const completion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",
         messages: [{ role: "user", content: prompt }],
@@ -228,7 +222,6 @@ class GmailService {
         }
       `;
 
-      const openai = getOpenAIClient();
       const completion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",
         messages: [{ role: "user", content: prompt }],

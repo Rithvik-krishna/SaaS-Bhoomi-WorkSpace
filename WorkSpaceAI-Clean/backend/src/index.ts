@@ -5,7 +5,6 @@ import session from 'express-session';
 import passport from 'passport';
 import authRoutes from './routes/auth';
 import gmailRoutes from './routes/gmail';
-import aiRoutes from './routes/ai';
 
 dotenv.config();
 
@@ -40,18 +39,16 @@ app.use(passport.session());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/gmail', gmailRoutes);
-app.use('/api/ai', aiRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {
   res.json({
     message: 'WorkSpace AI Backend API',
-            version: '1.0.0',
-        endpoints: {
-          auth: '/api/auth',
-          gmail: '/api/gmail',
-          ai: '/api/ai'
-        }
+    version: '1.0.0',
+    endpoints: {
+      auth: '/api/auth',
+      gmail: '/api/gmail'
+    }
   });
 });
 

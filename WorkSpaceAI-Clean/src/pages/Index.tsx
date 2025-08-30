@@ -7,13 +7,11 @@ import { AuthForm } from "@/components/AuthForm";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { LogOut, User, MessageCircle } from "lucide-react";
+import { LogOut, User } from "lucide-react";
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 
 const Index = () => {
   const { user, login, logout } = useAuth();
-  const navigate = useNavigate();
 
   // Handle Google OAuth callback
   useEffect(() => {
@@ -69,37 +67,23 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Top Navigation Bar */}
-      <div className="w-full flex justify-between items-center p-4 border-b border-border/50 bg-surface-elevated/50 backdrop-blur-sm">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/chat')}
-            className="flex items-center gap-2 text-primary hover:text-primary/80"
-          >
-            <MessageCircle className="w-4 h-4" />
-            Chat with AI
-          </Button>
+      {/* Logout Button - styled and with user icon */}
+      <div className="w-full flex justify-end items-center p-4">
+        <div className="flex items-center gap-2 mr-2 text-gray-700 font-medium">
+          <User className="w-5 h-5" />
+          <span>{user.name}</span>
         </div>
-        
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-gray-700 font-medium">
-            <User className="w-5 h-5" />
-            <span>{user.name}</span>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              logout();
-              toast.success("Logged out successfully");
-            }}
-            className="flex items-center gap-1"
-          >
-            <LogOut className="w-4 h-4 mr-1" /> Logout
-          </Button>
-        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            logout();
+            toast.success("Logged out successfully");
+          }}
+          className="flex items-center gap-1"
+        >
+          <LogOut className="w-4 h-4 mr-1" /> Logout
+        </Button>
       </div>
       <Hero />
       <IntegrationGrid />

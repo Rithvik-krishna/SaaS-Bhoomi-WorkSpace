@@ -8,14 +8,10 @@ import {
   Calendar,
   Zap,
   ArrowRight,
-  Sparkles,
-  MessageCircle
+  Sparkles
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 export function Hero() {
-  const navigate = useNavigate();
-  
   return (
     <div className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
       {/* Background Gradient */}
@@ -70,23 +66,13 @@ export function Hero() {
         
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <Button 
-            size="lg" 
-            className="gradient-primary text-white font-semibold px-8 py-6 rounded-xl ai-glow"
-            onClick={() => navigate('/gmail')}
-          >
+          <Button size="lg" className="gradient-primary text-white font-semibold px-8 py-6 rounded-xl ai-glow">
             Launch Dashboard
             <ArrowRight className="ml-2 w-5 h-5" />
           </Button>
           
-          <Button 
-            variant="outline" 
-            size="lg" 
-            className="px-8 py-6 rounded-xl border-border/50 hover:border-primary/50 flex items-center gap-2"
-            onClick={() => navigate('/chat')}
-          >
-            <MessageCircle className="w-5 h-5" />
-            Chat with WorkspaceAI
+          <Button variant="outline" size="lg" className="px-8 py-6 rounded-xl border-border/50 hover:border-primary/50">
+            View Demo
           </Button>
         </div>
         

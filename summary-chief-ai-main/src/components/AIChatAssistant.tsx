@@ -1,279 +1,239 @@
-import { useState, useRef, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, Send, Bot, User, Sparkles, MessageSquare } from 'lucide-react';
+// src/components/AIChatAssistant.tsx
+
+import { useState, useRef, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Send, Bot, User, Sparkles, Brain } from "lucide-react";
+import axios from "axios";
+import { toast } from "sonner";
+
+// Add custom scrollbar styles
+const scrollbarStyles = `
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--border) / 0.8);
+  }
+`;
 
 interface Message {
   id: string;
   content: string;
-  role: 'user' | 'assistant';
+  sender: 'user' | 'ai';
   timestamp: Date;
-  isLoading?: boolean;
 }
 
 export function AIChatAssistant() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: "Hello! I'm your WorkSpace AI assistant. I can help you with productivity tips, document analysis, email drafting, and much more. How can I assist you today?",
-      role: 'assistant',
+      content: "Hello! I'm WorkSpaceAI, your intelligent assistant. I can help you with:\n\n• Email summarization and drafting\n• Document analysis and insights\n• Meeting scheduling and reminders\n• Task management and productivity tips\n• General questions and support\n\nHow can I assist you today?",
+      sender: 'ai',
       timestamp: new Date()
     }
   ]);
-  const [inputMessage, setInputMessage] = useState('');
+  const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isConnected, setIsConnected] = useState(true);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [aiConnected, setAiConnected] = useState(false);
 
-  // Auto-scroll to bottom when new messages arrive
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
-    }
+    const checkAIConnection = async () => {
+      try {
+        const response = await axios.get('http://localhost:5001/api/ai/health');
+        setAiConnected(response.data.ai_configured);
+      } catch (error) {
+        console.error('AI Backend not available:', error);
+        setAiConnected(false);
+      }
+    };
+    checkAIConnection();
+  }, []);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const sendMessage = async () => {
-    if (!inputMessage.trim() || isLoading) return;
+  const handleSendMessage = async () => {
+    if (!inputValue.trim() || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      content: inputMessage,
-      role: 'user',
+      content: inputValue,
+      sender: 'user',
       timestamp: new Date()
     };
 
-    const loadingMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      content: '',
-      role: 'assistant',
-      timestamp: new Date(),
-      isLoading: true
-    };
-
-    setMessages(prev => [...prev, userMessage, loadingMessage]);
-    setInputMessage('');
+    setMessages(prev => [...prev, userMessage]);
+    setInputValue('');
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5001/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: inputMessage,
-          conversationHistory: messages.map(msg => ({
-            role: msg.role,
-            content: msg.content
-          }))
-        }),
+      const response = await axios.post('http://localhost:5001/api/ai/chat', {
+        message: inputValue,
+        context: messages.slice(-10)
       });
 
-      const data = await response.json();
-      
-      if (data.success) {
-        const assistantMessage: Message = {
-          id: (Date.now() + 2).toString(),
-          content: data.data.response,
-          role: 'assistant',
+      if (response.data.success) {
+        const aiResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          content: response.data.response,
+          sender: 'ai',
           timestamp: new Date()
         };
-
-        setMessages(prev => prev.map(msg => 
-          msg.isLoading ? assistantMessage : msg
-        ));
+        setMessages(prev => [...prev, aiResponse]);
       } else {
-        throw new Error(data.message || 'Failed to get response');
+        throw new Error(response.data.error || 'Failed to get AI response');
       }
     } catch (error) {
+      console.error('AI Chat Error:', error);
+      toast.error('Failed to get AI response. Please try again.');
+      
       const errorMessage: Message = {
-        id: (Date.now() + 2).toString(),
-        content: 'Sorry, I encountered an error. Please try again.',
-        role: 'assistant',
+        id: (Date.now() + 1).toString(),
+        content: "Sorry, I'm having trouble connecting to my AI service right now. Please try again in a moment.",
+        sender: 'ai',
         timestamp: new Date()
       };
-
-      setMessages(prev => prev.map(msg => 
-        msg.isLoading ? errorMessage : msg
-      ));
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
+      inputRef.current?.focus();
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      sendMessage();
+      handleSendMessage();
     }
   };
 
-  const clearChat = () => {
-    setMessages([
-      {
-        id: '1',
-        content: "Hello! I'm your WorkSpace AI assistant. I can help you with productivity tips, document analysis, email drafting, and much more. How can I assist you today?",
-        role: 'assistant',
-        timestamp: new Date()
-      }
-    ]);
+  const handleSuggestionClick = (suggestion: string) => {
+    setInputValue(suggestion);
+    inputRef.current?.focus();
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <div className="text-center">
-        <h2 className="text-3xl font-bold mb-2">🤖 AI Chat Assistant</h2>
-        <p className="text-muted-foreground">
-          Have a conversation with your AI productivity assistant
-        </p>
+    <>
+      <style>{scrollbarStyles}</style>
+      <div className="container mx-auto px-4 max-w-4xl h-full flex flex-col" style={{
+        '--scrollbar-thumb': 'hsl(var(--border))',
+        '--scrollbar-track': 'transparent'
+      } as React.CSSProperties}>
+      <div className="shrink-0 flex justify-between items-center mb-4">
+        <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <Brain className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+                <h1 className="text-xl font-semibold">AI Assistant</h1>
+                <p className="text-sm text-muted-foreground">Your intelligent productivity assistant</p>
+            </div>
+        </div>
+        <div className="flex items-center gap-2">
+            <Badge variant={aiConnected ? "default" : "destructive"}>
+                <div className={`w-2 h-2 rounded-full mr-2 ${aiConnected ? 'bg-green-400' : 'bg-red-400'}`} />
+                {aiConnected ? 'AI Connected' : 'AI Offline'}
+            </Badge>
+            <Badge variant="secondary">
+                <Sparkles className="w-3 h-3 mr-1" />
+                AI Powered
+            </Badge>
+        </div>
       </div>
 
-      <Card className="h-[600px] flex flex-col">
-        <CardHeader className="flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <MessageSquare className="w-5 h-5" />
-                AI Assistant Chat
-              </CardTitle>
-              <CardDescription>
-                {isConnected ? 'Connected to AI service' : 'Connecting...'}
-              </CardDescription>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant={isConnected ? "default" : "secondary"}>
-                {isConnected ? "Online" : "Offline"}
-              </Badge>
-              <Button variant="outline" size="sm" onClick={clearChat}>
-                Clear Chat
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-
+      <Card className="flex-1 flex flex-col overflow-hidden">
         <CardContent className="flex-1 flex flex-col p-0">
-          {/* Messages Area */}
-          <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
-            <div className="space-y-4">
+          
+          {/* Messages Area with Scrollbar */}
+          <ScrollArea className="flex-1 p-6 custom-scrollbar" style={{ 
+            scrollbarWidth: 'thin',
+            scrollbarColor: 'hsl(var(--border)) transparent',
+            overflowY: 'auto'
+          }}>
+            <div className="space-y-6 pr-4">
               {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex gap-3 ${
-                    message.role === 'user' ? 'justify-end' : 'justify-start'
-                  }`}
-                >
-                  {message.role === 'assistant' && (
-                    <Avatar className="w-8 h-8">
-                      <AvatarFallback className="bg-primary text-primary-foreground">
-                        <Bot className="w-4 h-4" />
-                      </AvatarFallback>
-                    </Avatar>
+                <div key={message.id} className={`flex gap-3 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  {message.sender === 'ai' && (
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Bot className="w-4 h-4 text-primary" />
+                    </div>
                   )}
-                  
-                  <div
-                    className={`max-w-[80%] rounded-lg p-3 ${
-                      message.role === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted'
-                    }`}
-                  >
-                    {message.isLoading ? (
-                      <div className="flex items-center gap-2">
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span className="text-sm">AI is thinking...</span>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <p className="text-sm whitespace-pre-wrap">
-                          {message.content}
-                        </p>
-                        <p className="text-xs opacity-70">
-                          {message.timestamp.toLocaleTimeString()}
-                        </p>
-                      </div>
-                    )}
+                  <div className={`max-w-[80%] rounded-2xl px-4 py-3 ${message.sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                    <div className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</div>
+                    <div className={`text-xs mt-2 ${message.sender === 'user' ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
                   </div>
-
-                  {message.role === 'user' && (
-                    <Avatar className="w-8 h-8">
-                      <AvatarFallback className="bg-secondary text-secondary-foreground">
-                        <User className="w-4 h-4" />
-                      </AvatarFallback>
-                    </Avatar>
+                  {message.sender === 'user' && (
+                    <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
+                      <User className="w-4 h-4 text-secondary-foreground" />
+                    </div>
                   )}
                 </div>
               ))}
+              {isLoading && (
+                <div className="flex gap-3 justify-start">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Bot className="w-4 h-4 text-primary" />
+                  </div>
+                  <div className="bg-muted rounded-2xl px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      </div>
+                      <span className="text-sm text-muted-foreground">AI is thinking...</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
             </div>
           </ScrollArea>
 
-          {/* Input Area */}
-          <div className="border-t p-4">
-            <div className="flex gap-2">
-              <Input
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Type your message here..."
-                disabled={isLoading}
-                className="flex-1"
-              />
-              <Button 
-                onClick={sendMessage} 
-                disabled={!inputMessage.trim() || isLoading}
-                size="icon"
-              >
-                {isLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
+          <div className="shrink-0 border-t p-4 bg-background/80 backdrop-blur-sm">
+             <div className="flex gap-3">
+               <Input
+                  ref={inputRef}
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder={aiConnected ? "Ask me anything..." : "AI is not connected."}
+                  className="flex-1"
+                  disabled={isLoading || !aiConnected}
+                  autoFocus
+                />
+                <Button onClick={handleSendMessage} disabled={!inputValue.trim() || isLoading || !aiConnected} size="icon" className="shrink-0">
                   <Send className="w-4 h-4" />
-                )}
-              </Button>
+                </Button>
+             </div>
+            <div className="flex flex-wrap gap-2 mt-3">
+              {[ "Help me draft an email", "Summarize my documents", "Schedule a meeting", "Create a task list" ].map((suggestion) => (
+                <Button key={suggestion} variant="outline" size="sm" onClick={() => handleSuggestionClick(suggestion)} disabled={isLoading || !aiConnected} className="text-xs">
+                  {suggestion}
+                </Button>
+              ))}
             </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              Press Enter to send, Shift+Enter for new line
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5" />
-            Quick Actions
-          </CardTitle>
-          <CardDescription>
-            Try these conversation starters
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {[
-              "Help me write a professional email",
-              "Summarize this meeting for me",
-              "Give me productivity tips for today",
-              "Analyze this document",
-              "Create a task list from my notes",
-              "Help me prepare for a presentation"
-            ].map((suggestion, index) => (
-              <Button
-                key={index}
-                variant="outline"
-                size="sm"
-                onClick={() => setInputMessage(suggestion)}
-                className="justify-start text-left h-auto p-3"
-              >
-                {suggestion}
-              </Button>
-            ))}
           </div>
         </CardContent>
       </Card>
     </div>
+    </>
   );
-} 
+}
