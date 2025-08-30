@@ -43,7 +43,7 @@ const CalendarMonthView: React.FC = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [gmailEvents, setGmailEvents] = useState<GmailEvent[]>([]);
   const [showEventModal, setShowEventModal] = useState(false);
-  const [modalMode, setModalMode] = useState<'view' | 'create'>('view');
+  const [modalMode, setModalMode] = useState<'view' | 'create' | 'schedule'>('view');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [newEvent, setNewEvent] = useState({
     title: '',
@@ -52,6 +52,12 @@ const CalendarMonthView: React.FC = () => {
     endTime: '10:00',
     attendees: '',
     type: 'meeting' as const
+  });
+  const [scheduleMeeting, setScheduleMeeting] = useState({
+    command: '',
+    participants: '',
+    dateRange: '',
+    description: ''
   });
   const [loading, setLoading] = useState(false);
 
@@ -68,70 +74,114 @@ const CalendarMonthView: React.FC = () => {
         withCredentials: true
       });
       
-      // Convert API events to local format
-      const calendarEvents = response.data.data.events.map((event: any) => ({
-        id: event.id,
-        title: event.summary,
-        description: event.description,
-        start: new Date(event.start.dateTime),
-        end: new Date(event.end.dateTime),
-        attendees: event.attendees?.map((a: any) => a.email) || [],
-        type: 'meeting' as const
-      }));
-      
-      setEvents(calendarEvents);
-    } catch (error) {
-      console.error('Error fetching events:', error);
-      // Load sample events for demo
-      setEvents(getSampleEvents());
+      if (response.data.success && response.data.data?.events) {
+        // Convert API events to local format
+        const calendarEvents = response.data.data.events.map((event: any) => ({
+          id: event.id,
+          title: event.summary,
+          description: event.description,
+          start: new Date(event.start.dateTime || event.start.date),
+          end: new Date(event.end.dateTime || event.end.date),
+          attendees: event.attendees?.map((a: any) => a.email) || [],
+          type: 'meeting' as const
+        }));
+        
+        setEvents(calendarEvents);
+        console.log('Real calendar events loaded:', calendarEvents.length);
+      } else {
+        console.warn('No calendar events data in response');
+        setEvents([]);
+      }
+    } catch (error: any) {
+      console.error('Error fetching calendar events:', error);
+      if (error.response?.status === 401) {
+        console.log('User not authenticated for calendar, skipping calendar events');
+      } else {
+        console.log('Failed to fetch calendar events:', error.message);
+      }
+      setEvents([]);
     }
   };
 
   const fetchGmailEvents = async () => {
     try {
+      // Fetch Gmail emails directly - the backend will use the session to identify the user
       const response = await axios.get(`${API_BASE}/gmail/emails?maxResults=50`, {
         withCredentials: true
       });
       
-      // Convert Gmail emails to calendar events
-      const gmailCalendarEvents = response.data.data.map((email: any) => ({
-        id: `gmail-${email.id}`,
-        title: email.subject,
-        description: email.snippet,
-        start: new Date(email.date),
-        end: new Date(new Date(email.date).getTime() + 60 * 60 * 1000), // 1 hour duration
-        attendees: [email.from],
-        type: 'gmail' as const,
-        gmailId: email.id
-      }));
-      
-      setGmailEvents(gmailCalendarEvents);
-    } catch (error) {
+      if (response.data.success && response.data.data && Array.isArray(response.data.data)) {
+        // Convert Gmail emails to calendar events
+        const gmailCalendarEvents = response.data.data.map((email: any) => ({
+          id: `gmail-${email.id}`,
+          title: email.subject,
+          description: email.snippet,
+          start: new Date(email.date),
+          end: new Date(new Date(email.date).getTime() + 60 * 60 * 1000), // 1 hour duration
+          attendees: [email.from],
+          type: 'gmail' as const,
+          gmailId: email.id
+        }));
+        
+        setGmailEvents(gmailCalendarEvents);
+        console.log('Real Gmail events loaded:', gmailCalendarEvents.length);
+      } else {
+        console.warn('No Gmail data in response');
+        setGmailEvents([]);
+      }
+    } catch (error: any) {
       console.error('Error fetching Gmail events:', error);
-      // Load sample Gmail events for demo
-      setGmailEvents(getSampleGmailEvents());
+      if (error.response?.status === 401) {
+        console.log('User not authenticated for Gmail, skipping Gmail events');
+      } else {
+        console.log('Failed to fetch Gmail events:', error.message);
+      }
+      setGmailEvents([]);
     }
   };
 
   const getSampleEvents = (): CalendarEvent[] => {
     const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+    const dayAfterTomorrow = new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000);
+    const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+    
     return [
       {
         id: '1',
         title: 'Team Standup',
-        description: 'Daily team meeting',
-        start: new Date(now.getTime() + 2 * 60 * 60 * 1000),
-        end: new Date(now.getTime() + 2.5 * 60 * 60 * 1000),
-        attendees: ['john@company.com', 'jane@company.com'],
+        description: 'Daily team meeting to discuss progress and blockers',
+        start: new Date(today.getTime() + 9 * 60 * 60 * 1000), // 9 AM today
+        end: new Date(today.getTime() + 9.5 * 60 * 60 * 1000), // 9:30 AM today
+        attendees: ['john@company.com', 'jane@company.com', 'mike@company.com'],
         type: 'meeting'
       },
       {
         id: '2',
-        title: 'Client Call',
-        description: 'Quarterly review',
-        start: new Date(now.getTime() + 24 * 60 * 60 * 1000),
-        end: new Date(now.getTime() + 25 * 60 * 60 * 1000),
-        attendees: ['client@company.com'],
+        title: 'Client Call - Q4 Planning',
+        description: 'Quarterly review and planning session',
+        start: new Date(tomorrow.getTime() + 14 * 60 * 60 * 1000), // 2 PM tomorrow
+        end: new Date(tomorrow.getTime() + 15 * 60 * 60 * 1000), // 3 PM tomorrow
+        attendees: ['client@company.com', 'manager@company.com'],
+        type: 'meeting'
+      },
+      {
+        id: '3',
+        title: 'Product Demo',
+        description: 'Showcase new features to stakeholders',
+        start: new Date(dayAfterTomorrow.getTime() + 10 * 60 * 60 * 1000), // 10 AM day after tomorrow
+        end: new Date(dayAfterTomorrow.getTime() + 11 * 60 * 60 * 1000), // 11 AM day after tomorrow
+        attendees: ['stakeholder@company.com', 'product@company.com'],
+        type: 'meeting'
+      },
+      {
+        id: '4',
+        title: 'Code Review',
+        description: 'Review pull requests and discuss technical decisions',
+        start: new Date(nextWeek.getTime() + 15 * 60 * 60 * 1000), // 3 PM next week
+        end: new Date(nextWeek.getTime() + 16 * 60 * 60 * 1000), // 4 PM next week
+        attendees: ['dev@company.com', 'tech@company.com'],
         type: 'meeting'
       }
     ];
@@ -139,20 +189,31 @@ const CalendarMonthView: React.FC = () => {
 
   const getSampleGmailEvents = (): GmailEvent[] => {
     const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+    const twoDaysAgo = new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000);
+    
     return [
       {
         id: 'g1',
         subject: 'Project Update Required',
         from: 'manager@company.com',
-        date: new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString(),
+        date: new Date(today.getTime() + 11 * 60 * 60 * 1000).toISOString(), // 11 AM today
         threadId: 'thread1'
       },
       {
         id: 'g2',
         subject: 'Meeting Follow-up',
         from: 'team@company.com',
-        date: new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString(),
+        date: new Date(yesterday.getTime() + 16 * 60 * 60 * 1000).toISOString(), // 4 PM yesterday
         threadId: 'thread2'
+      },
+      {
+        id: 'g3',
+        subject: 'Weekly Report',
+        from: 'reports@company.com',
+        date: new Date(twoDaysAgo.getTime() + 10 * 60 * 60 * 1000).toISOString(), // 10 AM two days ago
+        threadId: 'thread3'
       }
     ];
   };
@@ -179,6 +240,42 @@ const CalendarMonthView: React.FC = () => {
     setSelectedDate(date);
     setModalMode('view');
     setShowEventModal(true);
+  };
+
+  const handleScheduleMeeting = async () => {
+    if (!scheduleMeeting.command.trim()) {
+      toast.error('Please enter a meeting command');
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      const response = await axios.post(`${API_BASE}/calendar/schedule-meeting`, {
+        command: scheduleMeeting.command
+      }, {
+        withCredentials: true
+      });
+
+      if (response.data.success) {
+        toast.success('Meeting scheduled successfully!');
+        setScheduleMeeting({
+          command: '',
+          participants: '',
+          dateRange: '',
+          description: ''
+        });
+        setShowEventModal(false);
+        fetchEvents(); // Refresh events
+      } else {
+        toast.error(response.data.message || 'Failed to schedule meeting');
+      }
+    } catch (error: any) {
+      console.error('Error scheduling meeting:', error);
+      toast.error(error.response?.data?.message || 'Failed to schedule meeting');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCreateEvent = async () => {
@@ -305,17 +402,30 @@ const CalendarMonthView: React.FC = () => {
           </Button>
         </div>
         
-        <Button
-          onClick={() => {
-            setSelectedDate(new Date());
-            setModalMode('create');
-            setShowEventModal(true);
-          }}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Event
-        </Button>
+        <div className="flex gap-3">
+          <Button
+            onClick={() => {
+              setSelectedDate(new Date());
+              setModalMode('schedule');
+              setShowEventModal(true);
+            }}
+            className="bg-purple-600 hover:bg-purple-700 text-white"
+          >
+            <Mail className="w-4 h-4 mr-2" />
+            Schedule Meeting
+          </Button>
+          <Button
+            onClick={() => {
+              setSelectedDate(new Date());
+              setModalMode('create');
+              setShowEventModal(true);
+            }}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Event
+          </Button>
+        </div>
       </div>
 
       {/* Calendar Grid */}
@@ -384,7 +494,9 @@ const CalendarMonthView: React.FC = () => {
                 <CardTitle className="text-lg text-gray-100">
                   {modalMode === 'view' 
                     ? `Events for ${format(selectedDate, 'EEEE, MMMM d, yyyy')}`
-                    : `Add Event - ${format(selectedDate, 'EEEE, MMMM d, yyyy')}`
+                    : modalMode === 'create'
+                    ? `Add Event - ${format(selectedDate, 'EEEE, MMMM d, yyyy')}`
+                    : `Schedule Meeting - ${format(selectedDate, 'EEEE, MMMM d, yyyy')}`
                   }
                 </CardTitle>
                 <Button
@@ -464,7 +576,7 @@ const CalendarMonthView: React.FC = () => {
                         </Button>
                       </div>
                     </div>
-                  ) : (
+                  ) : modalMode === 'create' ? (
                     // Create Mode - Event creation form
                     <div className="space-y-4">
                       <div className="space-y-2">
@@ -542,6 +654,60 @@ const CalendarMonthView: React.FC = () => {
                           className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
                         >
                           {loading ? 'Creating...' : 'Create Event'}
+                        </Button>
+                        
+                        <Button
+                          variant="outline"
+                          onClick={() => setModalMode('view')}
+                          className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                        >
+                          Back to Events
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    // Schedule Meeting Mode - Natural language meeting scheduling
+                    <div className="space-y-4">
+                      <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-4 mb-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Mail className="w-5 h-5 text-purple-400" />
+                          <h4 className="font-semibold text-purple-300">AI-Powered Meeting Scheduler</h4>
+                        </div>
+                        <p className="text-sm text-purple-200">
+                          Use natural language to schedule meetings. The AI will parse your request and create the event automatically.
+                        </p>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="command" className="text-sm font-medium text-gray-300">
+                          Meeting Command *
+                        </Label>
+                        <Textarea
+                          id="command"
+                          value={scheduleMeeting.command}
+                          onChange={(e) => setScheduleMeeting(prev => ({ ...prev, command: e.target.value }))}
+                          placeholder="e.g., Schedule a 1-hour team meeting with john@company.com and jane@company.com tomorrow at 2 PM to discuss Q4 planning"
+                          rows={4}
+                          className="bg-gray-800 border-gray-700 text-gray-100 focus:ring-purple-500"
+                        />
+                      </div>
+                      
+                      <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-3">
+                        <h5 className="text-sm font-medium text-gray-300 mb-2">Examples:</h5>
+                        <ul className="text-xs text-gray-400 space-y-1">
+                          <li>• "Schedule a 30-minute interview with candidate@email.com next Tuesday at 10 AM"</li>
+                          <li>• "Book a 2-hour client meeting with client@company.com this Friday afternoon"</li>
+                          <li>• "Set up a daily standup with team@company.com every weekday at 9 AM"</li>
+                        </ul>
+                      </div>
+                      
+                      <div className="flex gap-3 pt-4">
+                        <Button
+                          onClick={handleScheduleMeeting}
+                          disabled={loading || !scheduleMeeting.command.trim()}
+                          className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+                        >
+                          {loading ? 'Scheduling...' : 'Schedule Meeting'}
                         </Button>
                         
                         <Button

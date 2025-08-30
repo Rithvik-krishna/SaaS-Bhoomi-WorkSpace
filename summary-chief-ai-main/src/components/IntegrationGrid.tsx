@@ -16,13 +16,6 @@ import {
 
 const integrations = [
   {
-    name: "Dashboard",
-    icon: Briefcase,
-    description: "Unified workspace overview & AI insights",
-    status: "Connected",
-    color: "bg-purple-500/20 text-purple-400 border-purple-500/30"
-  },
-  {
     name: "Gmail",
     icon: Mail,
     description: "Email summaries & draft generation",
@@ -37,13 +30,6 @@ const integrations = [
     color: "bg-blue-500/20 text-blue-400 border-blue-500/30"
   },
   {
-    name: "Slack",
-    icon: Slack,
-    description: "Team chat summarization",
-    status: "Available",
-    color: "bg-purple-500/20 text-purple-400 border-purple-500/30"
-  },
-  {
     name: "Google Calendar",
     icon: Calendar,
     description: "Meeting recaps & scheduling",
@@ -51,38 +37,45 @@ const integrations = [
     color: "bg-green-500/20 text-green-400 border-green-500/30"
   },
   {
+    name: "Slack",
+    icon: Slack,
+    description: "Team chat summarization",
+    status: "Coming Soon",
+    color: "bg-purple-500/20 text-purple-400 border-purple-500/30"
+  },
+  {
     name: "GitHub",
     icon: Github,
     description: "PR summaries & code reviews",
-    status: "Available",
+    status: "Coming Soon",
     color: "bg-gray-500/20 text-gray-400 border-gray-500/30"
   },
   {
     name: "Notion",
     icon: Database,
     description: "Knowledge base integration",
-    status: "Available",
+    status: "Coming Soon",
     color: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
   },
   {
     name: "Jira",
     icon: Trello,
     description: "Project updates & tickets",
-    status: "Available",
+    status: "Coming Soon",
     color: "bg-indigo-500/20 text-indigo-400 border-indigo-500/30"
   },
   {
     name: "Microsoft Teams",
     icon: MessageSquare,
     description: "Corporate chat integration",
-    status: "Available",
+    status: "Coming Soon",
     color: "bg-blue-600/20 text-blue-400 border-blue-600/30"
   },
   {
     name: "Office 365",
     icon: Briefcase,
     description: "Word, Excel, PowerPoint files",
-    status: "Available",
+    status: "Coming Soon",
     color: "bg-orange-500/20 text-orange-400 border-orange-500/30"
   }
 ];
@@ -91,9 +84,7 @@ export function IntegrationGrid() {
   const navigate = useNavigate();
 
   const handleIntegrationClick = (integrationName: string) => {
-    if (integrationName === "Dashboard") {
-      navigate('/dashboard');
-    } else if (integrationName === "Gmail") {
+    if (integrationName === "Gmail") {
       navigate('/gmail');
     } else if (integrationName === "Google Drive") {
       navigate('/google-drive');
@@ -123,7 +114,7 @@ export function IntegrationGrid() {
           {integrations.map((integration) => {
             const Icon = integration.icon;
             const isConnected = integration.status === "Connected";
-            const isClickable = integration.name === "Dashboard" || integration.name === "Gmail" || integration.name === "Google Drive" || integration.name === "Google Calendar";
+            const isClickable = integration.name === "Gmail" || integration.name === "Google Drive" || integration.name === "Google Calendar";
             
             return (
               <Card 

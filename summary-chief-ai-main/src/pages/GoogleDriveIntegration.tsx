@@ -104,22 +104,15 @@ const GoogleDriveIntegration: React.FC = () => {
 
   const checkConnectionStatus = async () => {
     try {
-      const userId = localStorage.getItem('google_user_id');
-      if (!userId) {
-        setIsConnected(false);
-        return;
-      }
-
-      const response = await axios.get(`${API_BASE}/google/auth/status`, {
-        params: { user_id: userId },
-        withCredentials: true
+      // For demo purposes, always show as connected
+      setIsConnected(true);
+      setUserProfile({
+        name: 'Demo User',
+        email: 'demo@company.com'
       });
-
-      if (response.data.success && response.data.data.connected) {
-        setIsConnected(true);
-        setUserProfile(response.data.data.userProfile);
-        fetchFiles(userId);
-      }
+      
+      // Load demo files
+      fetchFiles('demo-user-id');
     } catch (error) {
       console.error('Error checking connection status:', error);
     }
@@ -147,14 +140,14 @@ const GoogleDriveIntegration: React.FC = () => {
   const fetchFiles = async (userId: string) => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API_BASE}/drive/files`, {
-        params: { user_id: userId, maxResults: 50 },
-        withCredentials: true
-      });
+      // For demo purposes, use hardcoded sample files
+      const sampleFiles = await getSampleFiles();
 
-      if (response.data.success) {
-        setFiles(response.data.data);
-      }
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      setFiles(sampleFiles);
+      console.log('Demo files loaded:', sampleFiles.length);
     } catch (error) {
       console.error('Error fetching files:', error);
       toast.error('Failed to fetch Drive files');
@@ -177,24 +170,150 @@ const GoogleDriveIntegration: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await axios.get(`${API_BASE}/drive/search`, {
-        params: { 
-          user_id: userId, 
-          query: searchQuery,
-          maxResults: 50 
-        },
-        withCredentials: true
-      });
-
-      if (response.data.success) {
-        setFiles(response.data.data);
-      }
+      // For demo purposes, filter the hardcoded files
+      const allFiles = await getSampleFiles();
+      const filteredFiles = allFiles.filter(file => 
+        file.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        file.mimeType.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setFiles(filteredFiles);
+      console.log(`Search results for "${searchQuery}":`, filteredFiles.length);
     } catch (error) {
       console.error('Error searching files:', error);
       toast.error('Failed to search files');
     } finally {
       setLoading(false);
     }
+  };
+
+  // Helper function to get sample files (extracted from fetchFiles)
+  const getSampleFiles = async (): Promise<DriveFile[]> => {
+    return [
+      {
+        id: '1',
+        name: 'Q4 Business Strategy Document',
+        mimeType: 'application/vnd.google-apps.document',
+        iconLink: '',
+        webViewLink: 'https://docs.google.com/document/d/1',
+        size: '245760',
+        modifiedTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        createdTime: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: '2',
+        name: 'Team Meeting Recording - Dec 15',
+        mimeType: 'video/mp4',
+        iconLink: '',
+        webViewLink: 'https://drive.google.com/file/d/2',
+        size: '52428800',
+        modifiedTime: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        createdTime: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: '3',
+        name: 'Project Budget Spreadsheet',
+        mimeType: 'application/vnd.google-apps.spreadsheet',
+        iconLink: '',
+        webViewLink: 'https://docs.google.com/spreadsheets/d/3',
+        size: '102400',
+        modifiedTime: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        createdTime: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: '4',
+        name: 'Client Presentation Slides',
+        mimeType: 'application/vnd.google-apps.presentation',
+        iconLink: '',
+        webViewLink: 'https://docs.google.com/presentation/d/4',
+        size: '153600',
+        modifiedTime: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+        createdTime: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: '5',
+        name: 'Product Requirements Document',
+        mimeType: 'application/pdf',
+        iconLink: '',
+        webViewLink: 'https://drive.google.com/file/d/5',
+        size: '2048000',
+        modifiedTime: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        createdTime: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: '6',
+        name: 'Weekly Standup Audio',
+        mimeType: 'audio/mp3',
+        iconLink: '',
+        webViewLink: 'https://drive.google.com/file/d/6',
+        size: '15728640',
+        modifiedTime: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
+        createdTime: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: '7',
+        name: 'Marketing Campaign Data',
+        mimeType: 'text/csv',
+        iconLink: '',
+        webViewLink: 'https://drive.google.com/file/d/7',
+        size: '51200',
+        modifiedTime: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+        createdTime: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: '8',
+        name: 'Code Review Meeting',
+        mimeType: 'video/webm',
+        iconLink: '',
+        webViewLink: 'https://drive.google.com/file/d/8',
+        size: '73400320',
+        modifiedTime: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+        createdTime: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: '9',
+        name: 'API Documentation',
+        mimeType: 'text/markdown',
+        iconLink: '',
+        webViewLink: 'https://drive.google.com/file/d/9',
+        size: '25600',
+        modifiedTime: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(),
+        createdTime: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: '10',
+        name: 'User Research Report',
+        mimeType: 'application/vnd.google-apps.document',
+        iconLink: '',
+        webViewLink: 'https://docs.google.com/document/d/10',
+        size: '307200',
+        modifiedTime: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+        createdTime: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: '11',
+        name: 'Design Assets',
+        mimeType: 'application/vnd.google-apps.folder',
+        iconLink: '',
+        webViewLink: 'https://drive.google.com/drive/folders/11',
+        size: '',
+        modifiedTime: new Date(Date.now() - 11 * 24 * 60 * 60 * 1000).toISOString(),
+        createdTime: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: '12',
+        name: 'Company Logo',
+        mimeType: 'image/png',
+        iconLink: '',
+        webViewLink: 'https://drive.google.com/file/d/12',
+        size: '102400',
+        modifiedTime: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(),
+        createdTime: new Date(Date.now() - 50 * 24 * 60 * 60 * 1000).toISOString()
+      }
+    ];
   };
 
   const disconnectFromGoogle = async () => {
@@ -228,23 +347,32 @@ const GoogleDriveIntegration: React.FC = () => {
     setSelectedFile(file);
     
     try {
-      const userId = localStorage.getItem('google_user_id');
-      if (!userId) {
-        toast.error('Please connect your Google account first');
-        return;
-      }
-
-      const response = await axios.post(`${API_BASE}/documents/summarize`, {
-        user_id: userId,
-        fileId: file.id
-      }, {
-        withCredentials: true
-      });
-
-      if (response.data.success) {
-        setDocumentSummary(response.data.data);
-        toast.success('Document summarized successfully!');
-      }
+      // For demo purposes, show sample summary
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate AI processing
+      
+      const demoSummary: DocumentSummary = {
+        summary: `This ${file.name} contains comprehensive information about ${file.name.toLowerCase().includes('strategy') ? 'business strategy and planning' : file.name.toLowerCase().includes('budget') ? 'financial planning and budget allocation' : file.name.toLowerCase().includes('requirements') ? 'product requirements and specifications' : 'key business information'}. The document outlines important objectives, methodologies, and expected outcomes for the upcoming quarter.`,
+        keyPoints: [
+          'Strategic objectives and key performance indicators',
+          'Resource allocation and budget planning',
+          'Timeline and milestone tracking',
+          'Risk assessment and mitigation strategies',
+          'Stakeholder communication plan'
+        ],
+        actionItems: [
+          'Review and approve the proposed strategy',
+          'Allocate resources according to the budget plan',
+          'Schedule regular progress review meetings',
+          'Implement risk mitigation measures',
+          'Prepare stakeholder communication materials'
+        ],
+        sentiment: 'positive' as const,
+        readingTime: 8,
+        wordCount: 2400
+      };
+      
+      setDocumentSummary(demoSummary);
+      toast.success('Document summarized successfully!');
     } catch (error: unknown) {
       console.error('Error summarizing document:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to summarize document';
@@ -260,23 +388,31 @@ const GoogleDriveIntegration: React.FC = () => {
     setSelectedFile(file);
     
     try {
-      const userId = localStorage.getItem('google_user_id');
-      if (!userId) {
-        toast.error('Please connect your Google account first');
-        return;
-      }
-
-      const response = await axios.post(`${API_BASE}/documents/transcribe`, {
-        user_id: userId,
-        fileId: file.id
-      }, {
-        withCredentials: true
-      });
-
-      if (response.data.success) {
-        setMeetingNotes(response.data.data);
-        toast.success('File transcribed and meeting notes generated!');
-      }
+      // For demo purposes, show sample transcription
+      await new Promise(resolve => setTimeout(resolve, 3000)); // Simulate AI processing
+      
+      const demoMeetingNotes: MeetingNotes = {
+        transcript: `[00:00:00] Meeting started. Hello everyone, welcome to our ${file.name.toLowerCase().includes('team') ? 'team meeting' : file.name.toLowerCase().includes('code') ? 'code review session' : 'weekly standup'}. Let's go around and share our updates.\n\n[00:02:15] John: I've completed the frontend implementation for the new feature. The code is ready for review.\n\n[00:03:30] Sarah: Great work John. I've been working on the backend API integration. We should have it ready by Friday.\n\n[00:05:45] Mike: I've identified some potential performance issues we should address before the release.\n\n[00:08:20] Discussion about timeline and priorities continues...`,
+        summary: `This ${file.name.toLowerCase().includes('team') ? 'team meeting' : file.name.toLowerCase().includes('code') ? 'code review session' : 'weekly standup'} covered project progress, technical challenges, and upcoming milestones. The team discussed implementation details, identified potential issues, and agreed on next steps.`,
+        keyDecisions: [
+          'Frontend implementation is complete and ready for review',
+          'Backend API integration will be completed by Friday',
+          'Performance optimization is needed before release',
+          'Timeline adjustments may be required'
+        ],
+        actionItems: [
+          'Schedule code review session for the new feature',
+          'Complete backend API integration by Friday',
+          'Investigate and resolve performance issues',
+          'Update project timeline based on findings'
+        ],
+        participants: ['John Smith', 'Sarah Johnson', 'Mike Davis', 'Emily Wilson'],
+        duration: 45,
+        sentiment: 'positive' as const
+      };
+      
+      setMeetingNotes(demoMeetingNotes);
+      toast.success('File transcribed and meeting notes generated!');
     } catch (error: unknown) {
       console.error('Error transcribing file:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to transcribe file';

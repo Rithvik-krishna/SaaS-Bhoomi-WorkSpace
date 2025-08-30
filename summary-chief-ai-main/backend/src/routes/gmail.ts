@@ -8,16 +8,17 @@ const router = Router();
 // Set Gmail credentials from user's OAuth tokens
 const setGmailCredentials = async (req: any, res: any, next: any) => {
   try {
-    const { user_id } = req.query;
-    
-    if (!user_id) {
-      return res.status(400).json({ 
+    // Check if user is authenticated via session
+    if (!req.user) {
+      return res.status(401).json({ 
         success: false, 
-        error: 'User ID is required' 
+        error: 'User not authenticated. Please log in first.' 
       });
     }
 
-    await gmailService.setCredentialsFromUserId(user_id as string);
+    // Use the authenticated user's ID from session
+    const userId = req.user.id;
+    await gmailService.setCredentialsFromUserId(userId);
     next();
   } catch (error) {
     console.error('Error setting Gmail credentials:', error);
