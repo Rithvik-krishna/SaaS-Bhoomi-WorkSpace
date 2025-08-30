@@ -1,96 +1,122 @@
-Based on the images you provided, here is a README file for your project, "WorkSpaceAi."
+# WorkspaceAI ✨
 
-It's structured to be clear and informative, covering what the project is, its features, and the technologies used, all while reflecting the aesthetic and functionality shown in your screenshots.
 
------
+<p align="center">
+  <strong>An AI-powered productivity dashboard that centralizes work emails, documents, and chats — and auto-generates smart summaries and email drafts — all in one place.</strong>
+</p>
 
-# WorkSpaceAi
+<p align="center">
+    <img src="https://img.shields.io/badge/Built%20for-SaaSBoomi%20Hackathon%202025-blueviolet" alt="SaaSBoomi Hackathon 2025">
+    <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React">
+    <img src="https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white" alt="Vite">
+    <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS">
+    <img src="https://img.shields.io/badge/OpenAI-GPT--4-412991?style=for-the-badge&logo=openai" alt="OpenAI GPT-4">
+</p>
 
-**WorkSpaceAi** is a unified AI-powered productivity dashboard designed to centralize and automate your work. It acts as a personal AI chief of staff, providing intelligent summaries, drafting responses, creating recaps, and generating insights from all your connected work tools.
+<p align="center">
+  <a href="#key-features"><strong>Key Features</strong></a> ·
+  <a href="#screenshots"><strong>Screenshots</strong></a> ·
+  <a href="#tech-stack"><strong>Tech Stack</strong></a> ·
+  <a href="#getting-started"><strong>Getting Started</strong></a>
+</p>
 
-Built for the **SaaSBoomi Hackathon 2026**.
+---
 
-## 🌟 Core Features
+## 🎯 The Problem
 
-### 🎯 **Unified Dashboard**
-- **Comprehensive Overview**: Single view of all your work activities
-- **Smart Briefing**: AI-powered daily summary with priorities and notifications
-- **Priority Inbox**: Intelligent email sorting and task management
-- **Task Management**: Daily taskboard with completion tracking
-- **Calendar Integration**: Real-time calendar events and scheduling
-- **AI Suggestions**: Smart recommendations for productivity improvements
+In today's fast-paced work environment, professionals are constantly juggling multiple applications: email clients, calendars, document editors, team chats, and project management tools. This constant context-switching leads to lost productivity, fragmented information, and significant mental fatigue.
 
-### 🧠 AI-Powered Work Summarization
+## 💡 Our Solution
 
-Get one-click AI summaries of emails, documents, presentations, and more.
+**WorkspaceAI** is an all-in-one productivity dashboard designed to be your single source of truth. By integrating with your essential work tools and leveraging the power of AI, it eliminates the need for app-switching. Our platform not only centralizes your data but also provides intelligent summaries, drafts, and insights, allowing you to focus on what truly matters.
 
-  * **Smart Content Extraction**: Pulls key information from multiple sources.
-  * **Context-Aware Summarization**: Provides key insights and action items.
-  * **Multi-Format Support**: Works with text, docs, and presentations.
+---
 
-### ✍️ AI Email Draft Assistant
+## 🚀 Key Features
 
-Auto-generates email replies and drafts based on context and your preferred tone.
+* **Unified Dashboard:** A central "Briefing" view that aggregates your most important information: new emails, upcoming events, and pending tasks.
+* **AI Email Summarization:** Instantly understand the gist of long emails and threads with AI-powered summaries that highlight key points and action items.
+* **AI Email Drafting:** Generate professional, context-aware email replies and new drafts with simple prompts, saving you valuable time.
+* **Multi-Tool Integration:** Seamlessly connect with your favorite services:
+    * **Google Suite:** Gmail, Google Drive, Google Calendar
+    * **Collaboration:** Slack, Microsoft Teams
+    * **Project Management:** Jira, Notion
+    * **Development:** GitHub (for PR summaries & code reviews)
+* **Intelligent AI Assistant:** A conversational chatbot to help you schedule meetings, create task lists, analyze documents, and answer questions.
+* **Smart & Priority Inbox:** Let AI surface the most important emails and communications, so you can focus on what needs your attention first.
+* **Integrated Calendar & Task Management:** View your schedule and manage your daily to-do list without ever leaving the dashboard.
 
-  * **Context-Aware Reply Generation**: Creates smart, relevant responses.
-  * **Tone Adjustment**: Options for formal, casual, or urgent tones.
-  * **Meeting Follow-up Automation**: Automatically drafts follow-up emails after meetings.
+---
 
-### 🎙️ Daily & Weekly Digest Generator
+## 📸 Video Demo
 
-Automatically creates daily and weekly work digests with optional 60-second voice summaries.
 
-  * **Automated Summaries**: Generates quick recaps of your work.
-  * **Voice Digest Generation**: Provides audio summaries for on-the-go listening.
-  * **Meeting & Decision Tracking**: Keeps a record of key decisions and topics.
+---
 
-### 🤖 Built-in Chat Assistant
+## 🛠️ Tech Stack
 
-Ask questions about your work data and get intelligent, cross-platform responses.
+This project leverages a modern, robust tech stack to deliver a seamless and intelligent user experience.
 
-  * **Natural Language Queries**: Simply ask in plain English.
-  * **Cross-Platform Data Search**: Searches across all connected tools.
-  * **Contextual Recommendations**: Offers smart suggestions based on your queries.
-  * **Smart Task Automation**: Helps you create tasks directly from the chat.
+* **Frontend:** [React](https://reactjs.org/), [Vite](https://vitejs.dev/), [Tailwind CSS](https://tailwindcss.com/)
+* **UI Components:** [ShadCN UI](https://ui.shadcn.com/)
+* **AI & Machine Learning:** [OpenAI GPT-4](https://openai.com/gpt-4)
+* **Authentication:** [OAuth 2.0](https://oauth.net/2/) for secure integration with third-party services.
 
-## ⚙️ Integrations
+---
 
-WorkSpaceAi connects to a wide range of popular work tools to unify your data in one place.
+## 🏁 Getting Started
 
-  * **Connected**: Gmail, Google Drive, Google Calendar
-  * **Available**: Slack, GitHub, Notion, Jira, Microsoft Teams, Office 365
+To get a local copy up and running, follow these simple steps.
 
-*More integrations coming soon...*
+### Prerequisites
 
-## 🛠️ Technologies Used
+* Node.js (v18 or later)
+* npm, yarn, or pnpm
 
-  * **Frontend**: React, Vite, TypeScript
-  * **UI/Styling**: Tailwind CSS, shadcn-ui
-  * **API**: REST API
+### Installation
 
-## 🚀 Getting Started
-
-To run this project locally, clone the repository and follow these steps:
-
-1.  Clone the repository.
-    ```bash
-    git clone <YOUR_GIT_URL>
+1.  **Clone the repository:**
+    ```sh
+    git clone [https://github.com/your-username/workspace-ai.git](https://github.com/your-username/workspace-ai.git)
+    cd workspace-ai
     ```
-2.  Navigate to the project directory.
-    ```bash
-    cd WorkSpaceAi
-    ```
-3.  Install dependencies.
-    ```bash
+
+2.  **Install NPM packages:**
+    ```sh
     npm install
     ```
-4.  Start the development server.
-    ```bash
-    npm run dev
+
+3.  **Set up environment variables:**
+    Create a `.env.local` file in the root of the project and add the necessary API keys and credentials.
+    ```env
+    # OpenAI API Key
+    VITE_OPENAI_API_KEY=your_openai_api_key
+
+    # Google Cloud OAuth Credentials
+    VITE_GOOGLE_CLIENT_ID=your_google_client_id
+    VITE_GOOGLE_CLIENT_SECRET=your_google_client_secret
     ```
 
-## 🌐 Deployment
+4.  **Run the development server:**
+    ```sh
+    npm run dev
+    ```
+    Open [http://localhost:5173](http://localhost:5173) (or the port specified in your console) to view it in the browser.
 
+---
 
+## 👥 Team
 
-  
+* **Rithvik Krishna DK** - [GitHub](https://github.com/rithvik-krishna) | [LinkedIn](https://www.linkedin.com/in/rithvik-krishna-dk)
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the `LICENSE` file for details.
+
+---
+
+## 🙏 Acknowledgements
+
+This project was proudly built for the **SaaSBoomi Hackathon 2025**.

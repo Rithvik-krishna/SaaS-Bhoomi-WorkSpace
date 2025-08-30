@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -375,9 +376,37 @@ const GoogleDriveIntegration: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-purple-950/20 to-blue-950/20 text-gray-100">
+      {/* Animated background particles */}
+      <div className="absolute inset-0 overflow-hidden">
+        {[...Array(15)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-1 h-1 bg-purple-400 rounded-full opacity-20"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              y: [0, -30, 0],
+              opacity: [0.2, 0.6, 0.2],
+            }}
+            transition={{
+              duration: 4 + Math.random() * 3,
+              repeat: Infinity,
+              delay: Math.random() * 2,
+            }}
+          />
+        ))}
+      </div>
+
       {/* Header */}
-      <div className="border-b border-gray-800 bg-gray-900/60 backdrop-blur-md shadow-xl sticky top-0 z-10">
+      <motion.div
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="border-b border-gray-800/50 bg-gray-900/80 backdrop-blur-md shadow-xl sticky top-0 z-10"
+      >
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -427,7 +456,7 @@ const GoogleDriveIntegration: React.FC = () => {
                 </div>
               ) : (
                 <Button
-                  onClick={connectToGoogle}
+                  onClick={handleConnectGoogle}
                   className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
                 >
                   <Folder className="w-4 h-4" />
@@ -437,7 +466,7 @@ const GoogleDriveIntegration: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       <div className="container mx-auto px-4 py-8">
         {!isConnected ? (

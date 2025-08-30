@@ -12,6 +12,7 @@ import {
   FileText,
   Clock
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const features = [
   {
@@ -77,6 +78,7 @@ const demoMessages = [
 ];
 
 export function FeatureShowcase() {
+  const navigate = useNavigate();
   return (
     <div className="py-24 px-4">
       <div className="max-w-7xl mx-auto">
@@ -191,7 +193,11 @@ export function FeatureShowcase() {
           </div>
           
           <div className="mt-6 flex items-center justify-center">
-            <Button variant="outline" className="w-full max-w-md">
+            <Button 
+              variant="outline" 
+              className="w-full max-w-md"
+              onClick={() => navigate('/chat')}
+            >
               <MessageSquare className="w-4 h-4 mr-2" />
               Try the AI Assistant
             </Button>

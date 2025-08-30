@@ -42,10 +42,10 @@ export function ContactForm() {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="w-full max-w-md mx-auto bg-gray-800 border-gray-700">
       <CardHeader>
-        <CardTitle>Contact Us</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-gray-100">Contact Us</CardTitle>
+        <CardDescription className="text-gray-400">
           Get in touch with us for any questions or feedback
         </CardDescription>
       </CardHeader>
@@ -57,6 +57,7 @@ export function ContactForm() {
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               required
+              className="bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400 focus:border-purple-500"
             />
           </div>
           <div>
@@ -66,6 +67,7 @@ export function ContactForm() {
               value={formData.email}
               onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
               required
+              className="bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400 focus:border-purple-500"
             />
           </div>
           <div>
@@ -75,9 +77,10 @@ export function ContactForm() {
               onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
               rows={4}
               required
+              className="bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400 focus:border-purple-500"
             />
           </div>
-          <Button type="submit" disabled={isSubmitting} className="w-full">
+          <Button type="submit" disabled={isSubmitting} className="w-full bg-purple-600 hover:bg-purple-700 text-white">
             {isSubmitting ? 'Sending...' : 'Send Message'}
           </Button>
         </form>

@@ -132,7 +132,9 @@ export function AIChatAssistant() {
       <style>{scrollbarStyles}</style>
       <div className="container mx-auto px-4 max-w-4xl h-full flex flex-col" style={{
         '--scrollbar-thumb': 'hsl(var(--border))',
-        '--scrollbar-track': 'transparent'
+        '--scrollbar-track': 'transparent',
+        height: '100%',
+        maxHeight: '100%'
       } as React.CSSProperties}>
       <div className="shrink-0 flex justify-between items-center mb-4">
         <div className="flex items-center gap-3">
@@ -156,14 +158,16 @@ export function AIChatAssistant() {
         </div>
       </div>
 
-      <Card className="flex-1 flex flex-col overflow-hidden">
-        <CardContent className="flex-1 flex flex-col p-0">
+      <Card className="flex-1 flex flex-col overflow-hidden" style={{ height: 'calc(100vh - 200px)' }}>
+        <CardContent className="flex-1 flex flex-col p-0" style={{ height: '100%' }}>
           
           {/* Messages Area with Scrollbar */}
           <ScrollArea className="flex-1 p-6 custom-scrollbar" style={{ 
             scrollbarWidth: 'thin',
             scrollbarColor: 'hsl(var(--border)) transparent',
-            overflowY: 'auto'
+            overflowY: 'auto',
+            height: '100%',
+            maxHeight: 'calc(100vh - 300px)'
           }}>
             <div className="space-y-6 pr-4">
               {messages.map((message) => (

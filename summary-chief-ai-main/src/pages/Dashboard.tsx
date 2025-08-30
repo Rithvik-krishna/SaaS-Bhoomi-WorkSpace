@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, 
   User, 
@@ -19,7 +20,10 @@ import {
   Loader2,
   RefreshCw,
   X,
-  ArrowLeft
+  ArrowLeft,
+  Sparkles,
+  Zap,
+  TrendingUp
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -329,69 +333,132 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100">
-             {/* Top Header */}
-       <header className="bg-gray-800 border-b border-gray-700 px-6 py-4">
-         <div className="flex items-center justify-between">
-           {/* Logo and Back Button */}
-           <div className="flex items-center space-x-4">
-                           <Button
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-blue-900/20 text-gray-100">
+      {/* Animated background particles */}
+      <div className="absolute inset-0 overflow-hidden">
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-1 h-1 bg-purple-400 rounded-full opacity-20"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              y: [0, -30, 0],
+              opacity: [0.2, 0.6, 0.2],
+            }}
+            transition={{
+              duration: 3 + Math.random() * 2,
+              repeat: Infinity,
+              delay: Math.random() * 2,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Top Header */}
+      <motion.header
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="bg-gray-800/80 backdrop-blur-md border-b border-gray-700/50 px-6 py-4 sticky top-0 z-50"
+      >
+        <div className="flex items-center justify-between">
+          {/* Logo and Back Button */}
+          <div className="flex items-center space-x-4">
+            <motion.div
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleBackNavigation}
-                className="text-gray-400 hover:text-gray-300 hover:bg-gray-700 p-2"
+                className="text-gray-400 hover:text-gray-300 hover:bg-gray-700/50 p-2 rounded-lg transition-all duration-300"
               >
                 <ArrowLeft className="w-4 h-4" />
               </Button>
-             <div className="flex items-center space-x-3">
-               <h1 className="text-2xl font-bold">
-                 <span className="text-white">Workspace</span>
-                 <span className="bg-gradient-to-r from-purple-400 to-blue-500 bg-clip-text text-transparent">AI</span>
-               </h1>
-             </div>
-           </div>
+            </motion.div>
+            <motion.div 
+              className="flex items-center space-x-3"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+                          <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-white" />
+            </div>
+              <h1 className="text-2xl font-bold">
+                <span className="text-white">Workspace</span>
+                <span className="bg-gradient-to-r from-purple-400 to-blue-500 bg-clip-text text-transparent">AI</span>
+              </h1>
+            </motion.div>
+          </div>
 
           {/* Search Bar */}
-          <div className="flex-1 max-w-md mx-8">
+          <motion.div 
+            className="flex-1 max-w-md mx-8"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input
+              <motion.input
                 type="text"
                 placeholder="Search Workspace..."
-                className="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent backdrop-blur-sm transition-all duration-300"
+                whileFocus={{ 
+                  scale: 1.02,
+                  boxShadow: "0 0 20px rgba(147, 51, 234, 0.3)",
+                }}
               />
             </div>
-          </div>
+          </motion.div>
 
           {/* User Profile */}
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
+          <motion.div 
+            className="flex items-center space-x-4"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+          >
+            <motion.div 
+              className="flex items-center space-x-2"
+              whileHover={{ scale: 1.05 }}
+            >
               <User className="w-5 h-5 text-gray-400" />
-              <span className="text-sm font-medium">
+              <span className="text-sm font-medium text-gray-300">
                 {user.name || user.email || 'User'}
               </span>
-            </div>
-            <Button variant="ghost" size="sm" className="p-2">
-              <Settings className="w-5 h-5 text-gray-400" />
-            </Button>
-          </div>
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.1, rotate: 90 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <Button variant="ghost" size="sm" className="p-2 rounded-lg hover:bg-gray-700/50 transition-all duration-300">
+                <Settings className="w-5 h-5 text-gray-400" />
+              </Button>
+            </motion.div>
+          </motion.div>
         </div>
-      </header>
+      </motion.header>
 
       <div className="flex">
         {/* Left Sidebar */}
-        <aside className="w-64 bg-gray-800 border-r border-gray-700 p-6">
+        <aside className="w-64 bg-gray-800 border-r border-gray-700 p-6 relative z-10">
           <nav className="space-y-2">
             <Button 
               variant="default" 
-              className="w-full justify-start bg-purple-600 hover:bg-purple-700 text-white"
+              className="w-full justify-start bg-purple-600 hover:bg-purple-700 text-white relative z-20"
             >
               <CheckSquare className="w-4 h-4 mr-3" />
               Your Briefing
             </Button>
                          <Button 
                variant="ghost" 
-               className="w-full justify-start text-gray-300 hover:bg-gray-700"
+               className="w-full justify-start text-gray-300 hover:bg-gray-700 relative z-20"
                onClick={() => navigate('/gmail')}
              >
                <Mail className="w-4 h-4 mr-3" />
@@ -399,7 +466,7 @@ const Dashboard: React.FC = () => {
              </Button>
                            <Button 
                 variant="ghost" 
-                className="w-full justify-start text-gray-300 hover:bg-gray-700"
+                className="w-full justify-start text-gray-300 hover:bg-gray-700 relative z-20"
                 onClick={() => navigate('/google-drive')}
               >
                 <FileText className="w-4 h-4 mr-3" />
@@ -407,7 +474,7 @@ const Dashboard: React.FC = () => {
               </Button>
              <Button 
                variant="ghost" 
-               className="w-full justify-start text-gray-300 hover:bg-gray-700"
+               className="w-full justify-start text-gray-300 hover:bg-gray-700 relative z-20"
                onClick={() => navigate('/chat')}
              >
                <MessageSquare className="w-4 h-4 mr-3" />
@@ -415,7 +482,7 @@ const Dashboard: React.FC = () => {
              </Button>
                          <Button 
                variant="ghost" 
-               className="w-full justify-start text-gray-300 hover:bg-gray-700"
+               className="w-full justify-start text-gray-300 hover:bg-gray-700 relative z-20"
                onClick={() => {
                  const taskboardElement = document.getElementById('taskboard-section');
                  if (taskboardElement) {
@@ -431,7 +498,7 @@ const Dashboard: React.FC = () => {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-6 relative z-10">
           <div className="max-w-4xl mx-auto space-y-6">
             {/* Your Briefing Card */}
             <Card className="bg-gray-800 border-gray-700">
@@ -441,7 +508,7 @@ const Dashboard: React.FC = () => {
                   variant="ghost" 
                   size="sm" 
                   onClick={() => window.location.reload()}
-                  className="text-gray-400 hover:text-gray-300"
+                  className="text-gray-400 hover:text-gray-300 relative z-20"
                 >
                   <RefreshCw className="w-4 h-4" />
                 </Button>
@@ -462,7 +529,7 @@ const Dashboard: React.FC = () => {
                       variant="outline" 
                       size="sm" 
                       onClick={() => window.location.reload()}
-                      className="border-red-600 text-red-300 hover:bg-red-900/20"
+                      className="border-red-600 text-red-300 hover:bg-red-900/20 relative z-20"
                     >
                       Retry
                     </Button>
@@ -491,7 +558,7 @@ const Dashboard: React.FC = () => {
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        className="text-gray-400 hover:text-gray-300"
+                        className="text-gray-400 hover:text-gray-300 relative z-20"
                         onClick={() => navigate('/workspace-ai')}
                       >
                         View Calendar →
@@ -628,7 +695,7 @@ const Dashboard: React.FC = () => {
                           e.stopPropagation();
                           deleteTask(task.id);
                         }}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-600 rounded"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-600 rounded relative z-20"
                       >
                         <X className="w-4 h-4 text-gray-400 hover:text-red-400" />
                       </button>
@@ -645,7 +712,7 @@ const Dashboard: React.FC = () => {
         </main>
 
         {/* Right Sidebar */}
-        <aside className="w-80 bg-gray-800 border-l border-gray-700 p-6">
+        <aside className="w-80 bg-gray-800 border-l border-gray-700 p-6 relative z-10">
           <div className="space-y-6">
             {/* AI Suggestions Card */}
             <Card className="bg-gray-800 border-gray-700">
@@ -654,7 +721,7 @@ const Dashboard: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-2">
                 <Button 
-                  className="w-full justify-start bg-purple-600 hover:bg-purple-700 text-white"
+                  className="w-full justify-start bg-purple-600 hover:bg-purple-700 text-white relative z-20"
                   onClick={() => navigate('/chat')}
                 >
                   <MessageSquare className="w-4 h-4 mr-3" />
@@ -662,7 +729,7 @@ const Dashboard: React.FC = () => {
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start border-gray-600 text-gray-300 hover:bg-gray-700"
+                  className="w-full justify-start border-gray-600 text-gray-300 hover:bg-gray-700 relative z-20"
                   onClick={() => navigate('/gmail')}
                 >
                   <Mail className="w-4 h-4 mr-3" />
@@ -670,7 +737,7 @@ const Dashboard: React.FC = () => {
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start border-gray-600 text-gray-300 hover:bg-gray-700"
+                  className="w-full justify-start border-gray-600 text-gray-300 hover:bg-gray-700 relative z-20"
                   onClick={() => navigate('/workspace-ai')}
                 >
                   <Calendar className="w-4 h-4 mr-3" />
@@ -702,7 +769,7 @@ const Dashboard: React.FC = () => {
                     calendarEvents.slice(0, 3).map((event) => (
                       <div 
                         key={event.id || event.summary} 
-                        className="flex items-center justify-between p-2 rounded-lg bg-gray-700 hover:bg-gray-600 cursor-pointer transition-colors"
+                        className="flex items-center justify-between p-2 rounded-lg bg-gray-700 hover:bg-gray-600 cursor-pointer transition-colors relative z-20"
                         onClick={() => navigate('/workspace-ai')}
                       >
                         <div className="flex-1">
@@ -730,7 +797,7 @@ const Dashboard: React.FC = () => {
                 {Array.isArray(calendarEvents) && calendarEvents.length > 3 && (
                   <Button 
                     variant="outline" 
-                    className="w-full border-gray-600 text-gray-300 hover:bg-gray-700"
+                    className="w-full border-gray-600 text-gray-300 hover:bg-gray-700 relative z-20"
                     onClick={() => navigate('/workspace-ai')}
                   >
                     View All {calendarEvents.length} Events
@@ -747,7 +814,7 @@ const Dashboard: React.FC = () => {
               <CardContent className="space-y-2">
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start border-gray-600 text-gray-300 hover:bg-gray-700"
+                  className="w-full justify-start border-gray-600 text-gray-300 hover:bg-gray-700 relative z-20"
                   onClick={() => navigate('/gmail')}
                 >
                   <Mail className="w-4 h-4 mr-3" />
@@ -755,7 +822,7 @@ const Dashboard: React.FC = () => {
                 </Button>
                                  <Button 
                    variant="outline" 
-                   className="w-full justify-start border-gray-600 text-gray-300 hover:bg-gray-700"
+                   className="w-full justify-start border-gray-600 text-gray-300 hover:bg-gray-700 relative z-20"
                    onClick={() => navigate('/workspace-ai')}
                  >
                    <Calendar className="w-4 h-4 mr-3" />
@@ -763,7 +830,7 @@ const Dashboard: React.FC = () => {
                  </Button>
                  <Button 
                    variant="outline" 
-                   className="w-full justify-start border-gray-600 text-gray-300 hover:bg-gray-700"
+                   className="w-full justify-start border-gray-600 text-gray-300 hover:bg-gray-700 relative z-20"
                    onClick={() => navigate('/google-drive')}
                  >
                    <FileText className="w-4 h-4 mr-3" />
@@ -771,7 +838,7 @@ const Dashboard: React.FC = () => {
                  </Button>
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start border-gray-600 text-gray-300 hover:bg-gray-700"
+                  className="w-full justify-start border-gray-600 text-gray-300 hover:bg-gray-700 relative z-20"
                   onClick={() => navigate('/chat')}
                 >
                   <MessageSquare className="w-4 h-4 mr-3" />
