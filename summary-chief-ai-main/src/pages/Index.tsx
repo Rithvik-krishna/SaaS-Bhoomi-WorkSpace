@@ -7,7 +7,7 @@ import { AuthForm } from "@/components/AuthForm";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { LogOut, User, MessageCircle } from "lucide-react";
+import { LogOut, User, MessageCircle, BarChart3 } from "lucide-react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -80,6 +80,15 @@ const Index = () => {
           >
             <MessageCircle className="w-4 h-4" />
             Chat with AI
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white"
+          >
+            <BarChart3 className="w-4 h-4" />
+            Launch Dashboard
           </Button>
         </div>
         

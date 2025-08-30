@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import GmailIntegration from "./pages/GmailIntegration";
 import AIChatbot from "./pages/AIChatbot";
 import WorkspaceAI from "./pages/WorkspaceAI";
+import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/gmail" element={<GmailIntegration />} />
           <Route path="/chat" element={<AIChatbot />} />
           <Route path="/workspace-ai" element={<WorkspaceAI />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
