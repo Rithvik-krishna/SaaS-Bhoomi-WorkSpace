@@ -74,7 +74,14 @@ const validateLogin = [
 // Google OAuth routes (registered only if configured)
 if (hasGoogleOAuth) {
   router.get('/google', passport.authenticate('google', { 
-    scope: ['profile', 'email', 'https://www.googleapis.com/auth/gmail.readonly', 'https://www.googleapis.com/auth/gmail.send'] 
+    scope: [
+      'profile', 
+      'email', 
+      'https://www.googleapis.com/auth/gmail.readonly', 
+      'https://www.googleapis.com/auth/gmail.send',
+      'https://www.googleapis.com/auth/calendar',
+      'https://www.googleapis.com/auth/calendar.events'
+    ] 
   }));
 
   router.get('/google/callback', 

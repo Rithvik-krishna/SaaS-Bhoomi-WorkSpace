@@ -6,6 +6,7 @@ import passport from 'passport';
 import authRoutes from './routes/auth';
 import gmailRoutes from './routes/gmail';
 import aiRoutes from './routes/ai';
+import calendarRoutes from './routes/calendar';
 
 dotenv.config();
 
@@ -41,6 +42,7 @@ app.use(passport.session());
 app.use('/api/auth', authRoutes);
 app.use('/api/gmail', gmailRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/calendar', calendarRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -50,7 +52,8 @@ app.get('/', (req, res) => {
         endpoints: {
           auth: '/api/auth',
           gmail: '/api/gmail',
-          ai: '/api/ai'
+          ai: '/api/ai',
+          calendar: '/api/calendar'
         }
   });
 });

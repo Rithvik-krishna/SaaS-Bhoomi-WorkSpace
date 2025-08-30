@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import GmailIntegration from "./pages/GmailIntegration";
 import AIChatbot from "./pages/AIChatbot";
+import WorkspaceAI from "./pages/WorkspaceAI";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -20,6 +21,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/gmail" element={<GmailIntegration />} />
           <Route path="/chat" element={<AIChatbot />} />
+          <Route path="/workspace-ai" element={<WorkspaceAI />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

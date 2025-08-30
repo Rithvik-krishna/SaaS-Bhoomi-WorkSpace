@@ -86,6 +86,8 @@ export function IntegrationGrid() {
   const handleIntegrationClick = (integrationName: string) => {
     if (integrationName === "Gmail") {
       navigate('/gmail');
+    } else if (integrationName === "Google Calendar") {
+      navigate('/workspace-ai');
     }
     // Add other integrations as they become available
   };
@@ -110,7 +112,7 @@ export function IntegrationGrid() {
           {integrations.map((integration) => {
             const Icon = integration.icon;
             const isConnected = integration.status === "Connected";
-            const isClickable = integration.name === "Gmail";
+            const isClickable = integration.name === "Gmail" || integration.name === "Google Calendar";
             
             return (
               <Card 
