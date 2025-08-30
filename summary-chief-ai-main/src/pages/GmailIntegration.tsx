@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -402,6 +402,7 @@ const getPriorityColor = (priority: string) => {
 const GmailIntegration = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [emails, setEmails] = useState<EmailData[]>([]);
   const [selectedEmail, setSelectedEmail] = useState<EmailData | null>(null);
   const [emailSummary, setEmailSummary] = useState<EmailSummary | null>(null);
@@ -498,6 +499,10 @@ const GmailIntegration = () => {
     }
   };
 
+  const handleBackNavigation = () => {
+    navigate('/dashboard');
+  };
+
   if (!user) {
     return null;
   }
@@ -512,11 +517,10 @@ const GmailIntegration = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate('/')}
-                className="flex items-center gap-2 text-gray-300 hover:bg-gray-800"
+                onClick={handleBackNavigation}
+                className="text-gray-300 hover:bg-gray-800 p-2"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Back to Dashboard
               </Button>
               <div className="flex items-center gap-2">
                 <Mail className="w-7 h-7 text-purple-500" />

@@ -17,14 +17,16 @@ import {
   ChevronRight,
   Bell,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  X,
+  ArrowLeft
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { format, parseISO } from 'date-fns';
 
@@ -55,6 +57,7 @@ const Dashboard: React.FC = () => {
   const [currentDate] = useState(new Date());
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   
   // API configuration
   const API_BASE = 'http://localhost:5001/api';
@@ -65,11 +68,18 @@ const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Mock tasks for now (can be replaced with real task API later)
-  const tasks: Task[] = [
-    { id: '1', title: 'Standup at 5PM', completed: true },
-    { id: '2', title: 'Review pending emails', completed: false },
-  ];
+  // Task state
+  const [tasks, setTasks] = useState<Task[]>(() => {
+    const savedTasks = localStorage.getItem('dashboard-tasks');
+    if (savedTasks) {
+      return JSON.parse(savedTasks);
+    }
+    return [
+      { id: '1', title: 'Standup at 5PM', completed: true },
+      { id: '2', title: 'Review pending emails', completed: false },
+    ];
+  });
+  const [newTaskTitle, setNewTaskTitle] = useState('');
 
   const connectedDocs = [
     'Finance Review',
@@ -153,6 +163,11 @@ const Dashboard: React.FC = () => {
     }
   }, [user]);
 
+  // Save tasks to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('dashboard-tasks', JSON.stringify(tasks));
+  }, [tasks]);
+
   // Helper functions
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', { 
@@ -208,6 +223,49 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  // Task management functions
+  const toggleTaskCompletion = (taskId: string) => {
+    setTasks(prevTasks => 
+      prevTasks.map(task => 
+        task.id === taskId 
+          ? { ...task, completed: !task.completed }
+          : task
+      )
+    );
+  };
+
+  const addNewTask = () => {
+    if (newTaskTitle.trim()) {
+      const newTask: Task = {
+        id: Date.now().toString(),
+        title: newTaskTitle.trim(),
+        completed: false
+      };
+      setTasks(prevTasks => [...prevTasks, newTask]);
+      setNewTaskTitle('');
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      addNewTask();
+    }
+  };
+
+  const deleteTask = (taskId: string) => {
+    setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
+  };
+
+  const handleBackNavigation = () => {
+    // If we're on the dashboard, go to homepage
+    if (location.pathname === '/dashboard') {
+      navigate('/');
+    } else {
+      // Otherwise, go back to dashboard
+      navigate('/dashboard');
+    }
+  };
+
   // Show loading or error state if no user
   if (!user) {
     return (
@@ -225,16 +283,26 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100">
-      {/* Top Header */}
-      <header className="bg-gray-800 border-b border-gray-700 px-6 py-4">
-        <div className="flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center space-x-3">
-            <h1 className="text-2xl font-bold">
-              <span className="text-white">Workspace</span>
-              <span className="bg-gradient-to-r from-purple-400 to-blue-500 bg-clip-text text-transparent">AI</span>
-            </h1>
-          </div>
+             {/* Top Header */}
+       <header className="bg-gray-800 border-b border-gray-700 px-6 py-4">
+         <div className="flex items-center justify-between">
+           {/* Logo and Back Button */}
+           <div className="flex items-center space-x-4">
+                           <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleBackNavigation}
+                className="text-gray-400 hover:text-gray-300 hover:bg-gray-700 p-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+             <div className="flex items-center space-x-3">
+               <h1 className="text-2xl font-bold">
+                 <span className="text-white">Workspace</span>
+                 <span className="bg-gradient-to-r from-purple-400 to-blue-500 bg-clip-text text-transparent">AI</span>
+               </h1>
+             </div>
+           </div>
 
           {/* Search Bar */}
           <div className="flex-1 max-w-md mx-8">
@@ -274,26 +342,40 @@ const Dashboard: React.FC = () => {
               <CheckSquare className="w-4 h-4 mr-3" />
               Your Briefing
             </Button>
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700">
-              <Mail className="w-4 h-4 mr-3" />
-              Email
-            </Button>
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700">
-              <FileText className="w-4 h-4 mr-3" />
-              Docs
-            </Button>
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700">
-              <MessageSquare className="w-4 h-4 mr-3" />
-              Chats
-            </Button>
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700">
-              <CheckSquare className="w-4 h-4 mr-3" />
-              Taskboard
-            </Button>
-            <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700">
-              <BarChart3 className="w-4 h-4 mr-3" />
-              Analytics
-            </Button>
+                         <Button 
+               variant="ghost" 
+               className="w-full justify-start text-gray-300 hover:bg-gray-700"
+               onClick={() => navigate('/gmail')}
+             >
+               <Mail className="w-4 h-4 mr-3" />
+               Email
+             </Button>
+             <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700">
+               <FileText className="w-4 h-4 mr-3" />
+               Docs
+             </Button>
+             <Button 
+               variant="ghost" 
+               className="w-full justify-start text-gray-300 hover:bg-gray-700"
+               onClick={() => navigate('/chat')}
+             >
+               <MessageSquare className="w-4 h-4 mr-3" />
+               Chats
+             </Button>
+                         <Button 
+               variant="ghost" 
+               className="w-full justify-start text-gray-300 hover:bg-gray-700"
+               onClick={() => {
+                 const taskboardElement = document.getElementById('taskboard-section');
+                 if (taskboardElement) {
+                   taskboardElement.scrollIntoView({ behavior: 'smooth' });
+                 }
+               }}
+             >
+               <CheckSquare className="w-4 h-4 mr-3" />
+               Taskboard
+             </Button>
+            
           </nav>
         </aside>
 
@@ -440,24 +522,72 @@ const Dashboard: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Daily Taskboard Card */}
-            <Card className="bg-gray-800 border-gray-700">
+                         {/* Daily Taskboard Card */}
+             <Card id="taskboard-section" className="bg-gray-800 border-gray-700">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold text-gray-100">Daily Taskboard</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg font-semibold text-gray-100">Daily Taskboard</CardTitle>
+                  <Badge variant="secondary" className="bg-gray-700 text-gray-300">
+                    {tasks.filter(task => task.completed).length}/{tasks.length} completed
+                  </Badge>
+                </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                {tasks.map((task) => (
-                  <div key={task.id} className="flex items-center space-x-3">
-                    {task.completed ? (
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                    ) : (
-                      <Circle className="w-5 h-5 text-gray-400" />
-                    )}
-                    <span className={`text-sm ${task.completed ? 'text-gray-500 line-through' : 'text-gray-300'}`}>
-                      {task.title}
-                    </span>
+                {/* Add new task input */}
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    placeholder="Add a new task..."
+                    value={newTaskTitle}
+                    onChange={(e) => setNewTaskTitle(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                  />
+                  <Button
+                    onClick={addNewTask}
+                    disabled={!newTaskTitle.trim()}
+                    className="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Add
+                  </Button>
+                </div>
+                
+                {/* Task list */}
+                {tasks.length > 0 ? (
+                  tasks.map((task) => (
+                    <div 
+                      key={task.id} 
+                      className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-700 transition-colors group"
+                    >
+                      <div 
+                        className="flex items-center space-x-3 flex-1 cursor-pointer"
+                        onClick={() => toggleTaskCompletion(task.id)}
+                      >
+                        {task.completed ? (
+                          <CheckCircle className="w-5 h-5 text-green-500" />
+                        ) : (
+                          <Circle className="w-5 h-5 text-gray-400" />
+                        )}
+                        <span className={`text-sm flex-1 ${task.completed ? 'text-gray-500 line-through' : 'text-gray-300'}`}>
+                          {task.title}
+                        </span>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteTask(task.id);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-600 rounded"
+                      >
+                        <X className="w-4 h-4 text-gray-400 hover:text-red-400" />
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-4 text-gray-400">
+                    <p className="text-sm">No tasks yet. Add one above!</p>
                   </div>
-                ))}
+                )}
               </CardContent>
             </Card>
           </div>

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { 
@@ -13,6 +13,7 @@ import CalendarMonthView from '@/components/CalendarMonthView';
 const WorkspaceAI: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (!user) {
@@ -25,6 +26,10 @@ const WorkspaceAI: React.FC = () => {
     return null;
   }
 
+  const handleBackNavigation = () => {
+    navigate('/dashboard');
+  };
+
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
       {/* Simple Header */}
@@ -35,11 +40,10 @@ const WorkspaceAI: React.FC = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate('/')}
-                className="flex items-center gap-2 text-gray-300 hover:bg-gray-800"
+                onClick={handleBackNavigation}
+                className="text-gray-300 hover:bg-gray-800 p-2"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Back to Dashboard
               </Button>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center">

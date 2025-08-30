@@ -5,12 +5,13 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { LogOut, User, ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 
 const AIChatbot = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (!user) {
@@ -28,6 +29,10 @@ const AIChatbot = () => {
     navigate('/');
   };
 
+  const handleBackNavigation = () => {
+    navigate('/dashboard');
+  };
+
   return (
     <div className="h-screen bg-background text-foreground flex flex-col">
       {/* Header (will not grow) */}
@@ -36,11 +41,10 @@ const AIChatbot = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate('/')}
-            className="flex items-center gap-2"
+            onClick={handleBackNavigation}
+            className="p-2"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Dashboard
           </Button>
           <div className="hidden sm:block text-xl font-semibold text-primary">
             WorkSpaceAI Chat
