@@ -29,6 +29,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { format, parseISO } from 'date-fns';
+import { toast } from 'sonner';
 
 interface Task {
   id: string;
@@ -87,6 +88,33 @@ const Dashboard: React.FC = () => {
     'Deployed Features'
   ];
 
+  // State for Google user ID
+  const [googleUserId, setGoogleUserId] = useState<string | null>(() => {
+    // Try to get from localStorage first
+    return localStorage.getItem('google_user_id');
+  });
+
+  // Handle Google OAuth callback
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const googleConnected = urlParams.get('google_connected');
+    const userId = urlParams.get('user_id');
+    const googleError = urlParams.get('google_error');
+    
+    if (googleConnected === 'true' && userId) {
+      toast.success("Successfully connected to Google Drive!");
+      setGoogleUserId(userId);
+      // Store in localStorage for other pages to use
+      localStorage.setItem('google_user_id', userId);
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (googleError === 'true') {
+      toast.error("Failed to connect to Google Drive. Please try again.");
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
   // Fetch real data on component mount
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -98,7 +126,13 @@ const Dashboard: React.FC = () => {
         
         // Fetch emails from Gmail API
         try {
-          const emailsResponse = await axios.get(`${API_BASE}/gmail/emails?maxResults=5`, {
+          if (!googleUserId) {
+            console.log('No Google user ID available, skipping Gmail fetch');
+            setEmails([]);
+            return;
+          }
+          
+          const emailsResponse = await axios.get(`${API_BASE}/gmail/emails?maxResults=5&user_id=${googleUserId}`, {
             withCredentials: true
           });
           
@@ -161,7 +195,7 @@ const Dashboard: React.FC = () => {
       setLoading(false);
       setError('Please log in to view dashboard data');
     }
-  }, [user]);
+  }, [user, googleUserId]);
 
   // Save tasks to localStorage whenever they change
   useEffect(() => {
@@ -350,10 +384,14 @@ const Dashboard: React.FC = () => {
                <Mail className="w-4 h-4 mr-3" />
                Email
              </Button>
-             <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-700">
-               <FileText className="w-4 h-4 mr-3" />
-               Docs
-             </Button>
+                           <Button 
+                variant="ghost" 
+                className="w-full justify-start text-gray-300 hover:bg-gray-700"
+                onClick={() => navigate('/google-drive')}
+              >
+                <FileText className="w-4 h-4 mr-3" />
+                Google Drive
+              </Button>
              <Button 
                variant="ghost" 
                className="w-full justify-start text-gray-300 hover:bg-gray-700"
@@ -702,14 +740,22 @@ const Dashboard: React.FC = () => {
                   <Mail className="w-4 h-4 mr-3" />
                   Check Gmail
                 </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start border-gray-600 text-gray-300 hover:bg-gray-700"
-                  onClick={() => navigate('/workspace-ai')}
-                >
-                  <Calendar className="w-4 h-4 mr-3" />
-                  View Calendar
-                </Button>
+                                 <Button 
+                   variant="outline" 
+                   className="w-full justify-start border-gray-600 text-gray-300 hover:bg-gray-700"
+                   onClick={() => navigate('/workspace-ai')}
+                 >
+                   <Calendar className="w-4 h-4 mr-3" />
+                   View Calendar
+                 </Button>
+                 <Button 
+                   variant="outline" 
+                   className="w-full justify-start border-gray-600 text-gray-300 hover:bg-gray-700"
+                   onClick={() => navigate('/google-drive')}
+                 >
+                   <FileText className="w-4 h-4 mr-3" />
+                   Google Drive
+                 </Button>
                 <Button 
                   variant="outline" 
                   className="w-full justify-start border-gray-600 text-gray-300 hover:bg-gray-700"

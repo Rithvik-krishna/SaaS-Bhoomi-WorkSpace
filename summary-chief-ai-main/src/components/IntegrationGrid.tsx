@@ -95,6 +95,8 @@ export function IntegrationGrid() {
       navigate('/dashboard');
     } else if (integrationName === "Gmail") {
       navigate('/gmail');
+    } else if (integrationName === "Google Drive") {
+      navigate('/google-drive');
     } else if (integrationName === "Google Calendar") {
       navigate('/workspace-ai');
     }
@@ -121,7 +123,7 @@ export function IntegrationGrid() {
           {integrations.map((integration) => {
             const Icon = integration.icon;
             const isConnected = integration.status === "Connected";
-            const isClickable = integration.name === "Dashboard" || integration.name === "Gmail" || integration.name === "Google Calendar";
+            const isClickable = integration.name === "Dashboard" || integration.name === "Gmail" || integration.name === "Google Drive" || integration.name === "Google Calendar";
             
             return (
               <Card 

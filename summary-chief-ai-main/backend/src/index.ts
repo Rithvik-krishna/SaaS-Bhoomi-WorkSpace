@@ -7,6 +7,8 @@ import authRoutes from './routes/auth';
 import gmailRoutes from './routes/gmail';
 import aiRoutes from './routes/ai';
 import calendarRoutes from './routes/calendar';
+import googleRoutes from './routes/google';
+import driveRoutes from './routes/drive';
 
 dotenv.config();
 
@@ -19,8 +21,7 @@ app.use(cors({
     'http://localhost:8080',
     'http://localhost:8081',
     'http://localhost:8082',
-    'http://localhost:8083',
-    'http://localhost:5173'
+    'http://localhost:8083'
   ],
   credentials: true
 }));
@@ -43,6 +44,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/gmail', gmailRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/calendar', calendarRoutes);
+app.use('/api/google', googleRoutes);
+app.use('/api/drive', driveRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -53,7 +56,9 @@ app.get('/', (req, res) => {
           auth: '/api/auth',
           gmail: '/api/gmail',
           ai: '/api/ai',
-          calendar: '/api/calendar'
+          calendar: '/api/calendar',
+          google: '/api/google',
+          drive: '/api/drive'
         }
   });
 });

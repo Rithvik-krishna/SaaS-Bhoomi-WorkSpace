@@ -18,8 +18,19 @@ if (hasGoogleOAuth) {
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID as string,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-    callbackURL: "http://localhost:5001/api/auth/google/callback"
+    callbackURL: "http://localhost:5001/api/google/auth/callback"
   }, async (accessToken: any, refreshToken: any, profile: any, done: any) => {
+    console.log('🔍 Passport Google Strategy - Tokens received:');
+    console.log('🔍 Access Token:', !!accessToken);
+    console.log('🔍 Refresh Token:', !!refreshToken);
+    console.log('🔍 Profile ID:', profile.id);
+    
+    if (!refreshToken) {
+      console.error('❌ No refresh token in Passport strategy!');
+      console.error('🔧 User should revoke access and re-authenticate');
+    } else {
+      console.log('✅ Refresh token received in Passport strategy!');
+    }
     try {
       // Check if user already exists
       let user = users.find(u => u.googleId === profile.id);
@@ -81,7 +92,9 @@ if (hasGoogleOAuth) {
       'https://www.googleapis.com/auth/gmail.send',
       'https://www.googleapis.com/auth/calendar',
       'https://www.googleapis.com/auth/calendar.events'
-    ] 
+    ],
+    accessType: 'offline',
+    prompt: 'consent'
   }));
 
   router.get('/google/callback', 

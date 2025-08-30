@@ -439,7 +439,16 @@ const GmailIntegration = () => {
   const fetchEmails = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API_BASE}/gmail/emails?maxResults=20`, {
+      // Get user_id from localStorage or URL params
+      const urlParams = new URLSearchParams(window.location.search);
+      const userId = urlParams.get('user_id') || localStorage.getItem('google_user_id');
+      
+      if (!userId) {
+        toast.error('Please connect your Google account first');
+        return;
+      }
+
+      const response = await axios.get(`${API_BASE}/gmail/emails?maxResults=20&user_id=${userId}`, {
         withCredentials: true
       });
       setEmails(response.data.data);
@@ -457,7 +466,14 @@ const GmailIntegration = () => {
   const summarizeEmail = async (email: EmailData) => {
     setSummaryLoading(true);
     try {
-      const response = await axios.post(`${API_BASE}/gmail/emails/${email.id}/summarize`, {}, {
+      const userId = new URLSearchParams(window.location.search).get('user_id') || localStorage.getItem('google_user_id');
+      
+      if (!userId) {
+        toast.error('Please connect your Google account first');
+        return;
+      }
+
+      const response = await axios.post(`${API_BASE}/gmail/emails/${email.id}/summarize?user_id=${userId}`, {}, {
         withCredentials: true
       });
       setEmailSummary(response.data.data.summary);
@@ -473,7 +489,14 @@ const GmailIntegration = () => {
   const generateDraft = async () => {
     setDraftLoading(true);
     try {
-      const response = await axios.post(`${API_BASE}/gmail/draft`, draftForm, {
+      const userId = new URLSearchParams(window.location.search).get('user_id') || localStorage.getItem('google_user_id');
+      
+      if (!userId) {
+        toast.error('Please connect your Google account first');
+        return;
+      }
+
+      const response = await axios.post(`${API_BASE}/gmail/draft?user_id=${userId}`, draftForm, {
         withCredentials: true
       });
       setDraft(response.data.data);
@@ -488,7 +511,14 @@ const GmailIntegration = () => {
 
   const sendEmail = async (to: string, subject: string, body: string) => {
     try {
-      await axios.post(`${API_BASE}/gmail/send`, { to, subject, body }, {
+      const userId = new URLSearchParams(window.location.search).get('user_id') || localStorage.getItem('google_user_id');
+      
+      if (!userId) {
+        toast.error('Please connect your Google account first');
+        return;
+      }
+
+      await axios.post(`${API_BASE}/gmail/send?user_id=${userId}`, { to, subject, body }, {
         withCredentials: true
       });
       toast.success('Email sent successfully');

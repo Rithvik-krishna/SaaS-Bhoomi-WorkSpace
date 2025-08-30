@@ -8,6 +8,7 @@ import GmailIntegration from "./pages/GmailIntegration";
 import AIChatbot from "./pages/AIChatbot";
 import WorkspaceAI from "./pages/WorkspaceAI";
 import Dashboard from "./pages/Dashboard";
+import GoogleDriveIntegration from "./pages/GoogleDriveIntegration";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/chat" element={<AIChatbot />} />
           <Route path="/workspace-ai" element={<WorkspaceAI />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/google-drive" element={<GoogleDriveIntegration />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

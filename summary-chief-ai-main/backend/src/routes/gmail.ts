@@ -1,34 +1,41 @@
 import { Router, Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
 import gmailService, { EmailData, EmailSummary, EmailDraft } from '../services/gmailService';
+import tokenStorage from '../services/tokenStorage';
 
 const router = Router();
-
-// Middleware to verify user is authenticated
-const authenticateUser = (req: any, res: any, next: any) => {
-  if (!req.user) {
-    return res.status(401).json({ success: false, error: 'Authentication required' });
-  }
-  next();
-};
 
 // Set Gmail credentials from user's OAuth tokens
 const setGmailCredentials = (req: any, res: any, next: any) => {
   try {
-    const user = req.user;
-    if (user.accessToken) {
-      gmailService.setCredentials(user.accessToken, user.refreshToken);
-      next();
-    } else {
-      res.status(401).json({ success: false, error: 'Gmail access token not found' });
+    const { user_id } = req.query;
+    
+    if (!user_id) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'User ID is required' 
+      });
     }
+
+    const userToken = tokenStorage.getUserTokens(user_id as string);
+    
+    if (!userToken) {
+      return res.status(401).json({ 
+        success: false, 
+        error: 'User not connected to Google. Please connect your Google account first.' 
+      });
+    }
+
+    gmailService.setCredentials(userToken.access_token, userToken.refresh_token);
+    next();
   } catch (error) {
+    console.error('Error setting Gmail credentials:', error);
     res.status(500).json({ success: false, error: 'Failed to set Gmail credentials' });
   }
 };
 
 // Get emails from Gmail
-router.get('/emails', authenticateUser, setGmailCredentials, async (req, res) => {
+router.get('/emails', setGmailCredentials, async (req, res) => {
   try {
     const maxResults = parseInt(req.query.maxResults as string) || 10;
     const emails = await gmailService.getEmails(maxResults);
@@ -48,7 +55,7 @@ router.get('/emails', authenticateUser, setGmailCredentials, async (req, res) =>
 });
 
 // Get specific email details
-router.get('/emails/:emailId', authenticateUser, setGmailCredentials, async (req, res) => {
+router.get('/emails/:emailId', setGmailCredentials, async (req, res) => {
   try {
     const { emailId } = req.params;
     const email = await gmailService.getEmailDetails(emailId);
@@ -74,7 +81,7 @@ router.get('/emails/:emailId', authenticateUser, setGmailCredentials, async (req
 });
 
 // Summarize an email
-router.post('/emails/:emailId/summarize', authenticateUser, setGmailCredentials, async (req, res) => {
+router.post('/emails/:emailId/summarize', setGmailCredentials, async (req, res) => {
   try {
     const { emailId } = req.params;
     const email = await gmailService.getEmailDetails(emailId);
@@ -112,7 +119,7 @@ const validateDraftRequest = [
   body('tone').optional().isIn(['formal', 'casual', 'professional']).withMessage('Invalid tone')
 ];
 
-router.post('/draft', authenticateUser, setGmailCredentials, validateDraftRequest, async (req: Request, res: Response) => {
+router.post('/draft', setGmailCredentials, validateDraftRequest, async (req: Request, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -146,7 +153,7 @@ const validateSendEmail = [
   body('body').notEmpty().withMessage('Email body is required')
 ];
 
-router.post('/send', authenticateUser, setGmailCredentials, validateSendEmail, async (req: Request, res: Response) => {
+router.post('/send', setGmailCredentials, validateSendEmail, async (req: Request, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -181,7 +188,7 @@ router.post('/send', authenticateUser, setGmailCredentials, validateSendEmail, a
 });
 
 // Get email analytics/summary
-router.get('/analytics', authenticateUser, setGmailCredentials, async (req, res) => {
+router.get('/analytics', setGmailCredentials, async (req, res) => {
   try {
     const emails = await gmailService.getEmails(50); // Get more emails for analytics
     
