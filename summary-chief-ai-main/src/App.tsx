@@ -9,6 +9,8 @@ import AIChatbot from "./pages/AIChatbot";
 import WorkspaceAI from "./pages/WorkspaceAI";
 import Dashboard from "./pages/Dashboard";
 import GoogleDriveIntegration from "./pages/GoogleDriveIntegration";
+import GitHubIntegration from "./pages/GitHubIntegration";
+import GitHubCallback from "./pages/GitHubCallback";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +28,8 @@ const App = () => (
           <Route path="/workspace-ai" element={<WorkspaceAI />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/google-drive" element={<GoogleDriveIntegration />} />
+          <Route path="/github" element={<GitHubIntegration />} />
+          <Route path="/github-callback" element={<GitHubCallback />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

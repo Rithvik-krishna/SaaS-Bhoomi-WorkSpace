@@ -47,7 +47,7 @@ const integrations = [
     name: "GitHub",
     icon: Github,
     description: "PR summaries & code reviews",
-    status: "Coming Soon",
+    status: "Available",
     color: "bg-gray-500/20 text-gray-400 border-gray-500/30"
   },
   {
@@ -90,6 +90,8 @@ export function IntegrationGrid() {
       navigate('/google-drive');
     } else if (integrationName === "Google Calendar") {
       navigate('/workspace-ai');
+    } else if (integrationName === "GitHub") {
+      navigate('/github');
     }
     // Add other integrations as they become available
   };
@@ -114,7 +116,7 @@ export function IntegrationGrid() {
           {integrations.map((integration) => {
             const Icon = integration.icon;
             const isConnected = integration.status === "Connected";
-            const isClickable = integration.name === "Gmail" || integration.name === "Google Drive" || integration.name === "Google Calendar";
+            const isClickable = integration.name === "Gmail" || integration.name === "Google Drive" || integration.name === "Google Calendar" || integration.name === "GitHub";
             
             return (
               <Card 
