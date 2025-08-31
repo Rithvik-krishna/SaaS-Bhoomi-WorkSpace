@@ -1,8 +1,5 @@
 # ✨ WorkspaceAI: Your Intelligent Work Hub
 
-<p align="center">
-  <img src="https://i.imgur.com/image_6e7618.jpg" alt="WorkspaceAI Banner" width="850"/>
-</p>
 
 <p align="center">
   <strong>In a world of digital noise, focus is the new superpower. WorkspaceAI is an intelligent dashboard built to restore that focus by unifying your work and automating intelligence.</strong>
@@ -56,13 +53,7 @@ The modern professional drowns in a sea of digital tools. We lose up to **40% of
 
 ---
 
-## 📸 Screenshots
 
-| Unified Dashboard                                   | AI-Powered Email Analysis                          |
-| --------------------------------------------------- | -------------------------------------------------- |
-| ![Dashboard](https://i.imgur.com/image_6e72dc.png)      | ![Email AI Analysis](https://i.imgur.com/image_6e7295.png) |
-
----
 
 ## 🛠️ Tech Stack
 
